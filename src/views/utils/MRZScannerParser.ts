@@ -96,8 +96,6 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
   };
 
   // Document Type and Name
-  console.log(parsedResult);
-
   const codeType = parsedResult.codeType;
   const documentType = mapDocumentType(codeType);
   // TODO Instead of Passport for TD3, check for visa..
@@ -133,8 +131,8 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
     [EnumMRZData.FirstName]: parsedResult.getFieldValue("secondaryIdentifier"),
     [EnumMRZData.LastName]: parsedResult.getFieldValue("primaryIdentifier"),
     [EnumMRZData.Sex]: parsedResult.getFieldValue("sex"),
-    [EnumMRZData.IssuingState]: parsedResult.getFieldValue("issuingState"),
-    [EnumMRZData.Nationality]: parsedResult.getFieldValue("nationality"),
+    [EnumMRZData.IssuingState]: parsedResult.getFieldRawValue("issuingState"),
+    [EnumMRZData.Nationality]: parsedResult.getFieldRawValue("nationality"),
     [EnumMRZData.DocumentNumber]:
       parsedResult.getFieldValue(documentNumberField) || parsedResult.getFieldValue("longDocumentNumber"),
   };
