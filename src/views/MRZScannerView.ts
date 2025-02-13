@@ -1,12 +1,12 @@
 import { EnumCapturedResultItemType, EnumImagePixelFormat, OriginalImageResultItem } from "dynamsoft-core";
 import { CapturedResultReceiver, CapturedResult } from "dynamsoft-capture-vision-router";
-import { MultiFrameResultCrossFilter } from "dynamsoft-utility";
 import { SharedResources } from "../MRZScanner";
 import { EnumResultStatus, UtilizedTemplateNames, EnumMRZScanMode } from "./utils/types";
 import { DEFAULT_LOADING_SCREEN_STYLE, showLoadingScreen } from "./utils/LoadingScreen";
 import { createStyle, getElement } from "./utils";
 import { MRZData, MRZResult, processMRZData } from "./utils/MRZScannerParser";
 import { ParsedResultItem } from "dynamsoft-code-parser";
+import { Feedback } from "dynamsoft-camera-enhancer";
 
 export interface MRZScannerViewConfig {
   defaultScanMode?: EnumMRZScanMode;
@@ -97,7 +97,7 @@ export default class MRZScannerView {
       await cvRouter.addResultReceiver(resultReceiver);
 
       // Set default value for sound feedback
-      this.isSoundFeedbackOn = false;
+      this.toggleSoundFeedback(false);
 
       this.initialized = true;
     } catch (ex: any) {
@@ -355,20 +355,18 @@ export default class MRZScannerView {
 
   private toggleSoundFeedback(enabled?: boolean) {
     this.isSoundFeedbackOn = enabled !== undefined ? enabled : !this.isSoundFeedbackOn;
-  }
 
-  async toggleAutoCaptureAnimation(enabled?: boolean) {
     const configContainer = getElement(this.config.container);
     const DCEContainer = configContainer.children[configContainer.children.length - 1];
-
     if (!DCEContainer?.shadowRoot) return;
 
-    const loadingAnimation = DCEContainer.shadowRoot.querySelector(
-      ".dce-loading-auto-capture-animation"
-    ) as HTMLElement;
+    const soundFeedbackContainer = DCEContainer.shadowRoot.querySelector(".dce-mn-sound-feedback") as HTMLElement;
 
-    loadingAnimation.style.borderLeftColor = enabled ? "transparent" : "#fe8e14";
-    loadingAnimation.style.borderBottomColor = enabled ? "transparent" : "#fe8e14";
+    const onIcon = soundFeedbackContainer.querySelector(".dce-mn-sound-feedback-on") as HTMLElement;
+    const offIcon = soundFeedbackContainer.querySelector(".dce-mn-sound-feedback-off") as HTMLElement;
+
+    offIcon.style.display = this.isSoundFeedbackOn ? "none" : "block";
+    onIcon.style.display = this.isSoundFeedbackOn ? "block" : "none";
   }
 
   async openCamera(): Promise<void> {
@@ -447,7 +445,7 @@ export default class MRZScannerView {
     }
 
     try {
-      const { cameraEnhancer, onResultUpdated } = this.resources;
+      const { onResultUpdated } = this.resources;
 
       const originalImage = result.items.filter(
         (item) => item.type === EnumCapturedResultItemType.CRIT_ORIGINAL_IMAGE
@@ -458,6 +456,9 @@ export default class MRZScannerView {
       const parsedResultItems = result?.parsedResultItems;
 
       if (textLineResultItems) {
+        if (this.isSoundFeedbackOn) {
+          Feedback.beep();
+        }
         const mrzText = textLineResultItems?.[0]?.text || "";
         const parsedResult = parsedResultItems[0] as ParsedResultItem;
 
