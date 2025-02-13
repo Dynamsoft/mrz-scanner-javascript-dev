@@ -8,13 +8,13 @@
   </head>
 
   <body>
-    <h1 style="font-size: large">Dynamsoft Document Scanner</h1>
+    <h1 style="font-size: large">Dynamsoft MRZ Scanner</h1>
     <div id="results"></div>
 
     <script>
       const resultContainer = document.querySelector("#results");
 
-      // Initialize the Dynamsoft Document Scanner
+      // Initialize the Dynamsoft MRZ Scanner
       const mrzscanner = new Dynamsoft.MRZScanner({
         license: "YOUR_LICENSE_KEY_HERE",
       });
@@ -26,14 +26,18 @@
         if (result?.data) {
           resultContainer.innerHTML = ""; // Clear placeholder content
 
-          const canvas = result?.originalImageResult?.toCanvas();
-          resultContainer.innerHTML = canvas;
+          const canvas = result.originalImageResult.toCanvas();
+          canvas.style.objectFit = "contain";
+          canvas.style.width = "100%";
+          canvas.style.height = "100%";
+          resultContainer.appendChild(canvas);
 
           let resultHTML = ``;
           Object.entries(result.data).forEach(([key, value]) => {
-            resultHTML += `<div>${key}: ${JSON.stringify(value)}</div>`;
+            const div = document.createElement("div");
+            div.innerHTML = `${key}: ${JSON.stringify(value)}`;
+            resultContainer.appendChild(div);
           });
-          resultContainer.innerHTML = resultHTML;
         } else {
           resultContainer.innerHTML = "<p>No MRZ scanned. Please try again.</p>";
         }
