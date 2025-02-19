@@ -131,7 +131,7 @@ export default class MRZScannerView {
       // Set up cameraView styling
       cameraView.setScanRegionMaskStyle({
         strokeStyle: "transparent",
-        // fillStyle: "transparent",
+        fillStyle: "transparent",
         lineWidth: 0,
       } as any);
       cameraView.setVideoFit("cover");
@@ -262,21 +262,21 @@ export default class MRZScannerView {
     );
 
     // Select mode
-    this.DCE_ELEMENTS.passportModeOption.addEventListener("click", () => {
+    this.DCE_ELEMENTS.passportModeOption.addEventListener("click", async () => {
       if (this.DCE_ELEMENTS.passportModeOption.style.display !== "none") {
-        this.toggleScanDocType(EnumMRZDocumentType.Passport);
+        await this.toggleScanDocType(EnumMRZDocumentType.Passport);
       }
     });
 
-    this.DCE_ELEMENTS.td1ModeOption.addEventListener("click", () => {
+    this.DCE_ELEMENTS.td1ModeOption.addEventListener("click", async () => {
       if (this.DCE_ELEMENTS.td1ModeOption.style.display !== "none") {
-        this.toggleScanDocType(EnumMRZDocumentType.TD1);
+        await this.toggleScanDocType(EnumMRZDocumentType.TD1);
       }
     });
 
-    this.DCE_ELEMENTS.td2ModeOption.addEventListener("click", () => {
+    this.DCE_ELEMENTS.td2ModeOption.addEventListener("click", async () => {
       if (this.DCE_ELEMENTS.td2ModeOption.style.display !== "none") {
-        this.toggleScanDocType(EnumMRZDocumentType.TD2);
+        await this.toggleScanDocType(EnumMRZDocumentType.TD2);
       }
     });
   }
@@ -667,7 +667,7 @@ export default class MRZScannerView {
     }
   }
 
-  closeCamera(hideContainer: boolean = true) {
+  async closeCamera(hideContainer: boolean = true) {
     // Remove resize event listener
     window.removeEventListener("resize", this.handleResize);
     // Clear any existing resize timer
@@ -808,6 +808,7 @@ export default class MRZScannerView {
       "": EnumMRZScanMode.All, // Handle case when no types are enabled
     };
 
+    console.log(modeMap[enabled]);
     return modeMap[enabled];
   }
 
@@ -823,7 +824,9 @@ export default class MRZScannerView {
     }, duration) as any;
   }
 
-  private toggleScanDocType(docType: EnumMRZDocumentType): void {
+  private async toggleScanDocType(docType: EnumMRZDocumentType): Promise<void> {
+    const { cvRouter, cameraEnhancer } = this.resources;
+
     if (
       this.scanModeManager[docType] &&
       Object.entries(this.scanModeManager).filter(([type, enabled]) => enabled && type !== docType).length === 0
@@ -838,6 +841,10 @@ export default class MRZScannerView {
 
     // Update current scan mode
     this.currentScanMode = this.getScanMode();
+
+    cvRouter.stopCapturing();
+    await cvRouter.startCapturing(this.config.utilizedTemplateNames[this.currentScanMode]);
+    cameraEnhancer.setPixelFormat(EnumImagePixelFormat.IPF_ABGR_8888);
 
     this.toggleScanGuide();
 
