@@ -7,6 +7,7 @@ import { checkOrientation, createStyle, findClosestResolutionLevel, getElement }
 import { MRZData, MRZResult, processMRZData } from "./utils/MRZParser";
 import { ParsedResultItem } from "dynamsoft-code-parser";
 import { Feedback } from "dynamsoft-camera-enhancer";
+import { MultiFrameResultCrossFilter } from "dynamsoft-utility";
 
 export interface MRZScannerViewConfig {
   cameraEnhancerUIPath?: string;
@@ -140,6 +141,11 @@ export default class MRZScannerView {
 
       // Initialize the template parameters for mrz scanning
       await cvRouter.initSettings(this.config.templateFilePath);
+
+      const filter = new MultiFrameResultCrossFilter();
+      filter.enableResultCrossVerification(EnumCapturedResultItemType.CRIT_TEXT_LINE, true);
+      filter.enableResultDeduplication(EnumCapturedResultItemType.CRIT_TEXT_LINE, true);
+      await cvRouter.addResultFilter(filter);
 
       const resultReceiver = new CapturedResultReceiver();
       resultReceiver.onCapturedResultReceived = (result) => this.handleMRZResult(result);
