@@ -178,12 +178,15 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
     }
   });
 
+  const age = calculateAge(dateOfBirth);
+  if (age < 1) invalidFields.push(EnumMRZData.Age);
+
   const mrzData: MRZData = {
     [EnumMRZData.InvalidFields]: invalidFields,
     [EnumMRZData.MRZText]: mrzText,
     [EnumMRZData.DocumentType]: documentType,
 
-    [EnumMRZData.Age]: calculateAge(dateOfBirth),
+    [EnumMRZData.Age]: age,
     ...fields,
     [EnumMRZData.DateOfBirth]: dateOfBirth,
     [EnumMRZData.DateOfExpiry]: dateOfExpiry,
