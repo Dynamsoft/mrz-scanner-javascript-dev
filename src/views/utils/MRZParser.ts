@@ -147,13 +147,13 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
   });
 
   const fields = {
-    [EnumMRZData.FirstName]: parsedResult.getFieldValue("secondaryIdentifier"),
     [EnumMRZData.LastName]: parsedResult.getFieldValue("primaryIdentifier"),
-    [EnumMRZData.Sex]: parsedResult.getFieldValue("sex"),
-    [EnumMRZData.IssuingState]: parsedResult.getFieldRawValue("issuingState"),
+    [EnumMRZData.FirstName]: parsedResult.getFieldValue("secondaryIdentifier"),
     [EnumMRZData.Nationality]: parsedResult.getFieldRawValue("nationality"),
     [EnumMRZData.DocumentNumber]:
       parsedResult.getFieldValue(documentNumberField) || parsedResult.getFieldValue("longDocumentNumber"),
+    [EnumMRZData.IssuingState]: parsedResult.getFieldRawValue("issuingState"),
+    [EnumMRZData.Sex]: parsedResult.getFieldValue("sex"),
   };
 
   Object.keys(fields).forEach((key) => {
@@ -185,7 +185,6 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
 
     [EnumMRZData.Age]: calculateAge(dateOfBirth),
     ...fields,
-
     [EnumMRZData.DateOfBirth]: dateOfBirth,
     [EnumMRZData.DateOfExpiry]: dateOfExpiry,
   };
