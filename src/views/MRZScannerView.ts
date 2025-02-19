@@ -806,7 +806,6 @@ export default class MRZScannerView {
       "": EnumMRZScanMode.All, // Handle case when no types are enabled
     };
 
-    console.log(modeMap[enabled]);
     return modeMap[enabled];
   }
 
@@ -822,36 +821,98 @@ export default class MRZScannerView {
     }, duration) as any;
   }
 
-  private async toggleScanDocType(docType: EnumMRZDocumentType): Promise<void> {
+  private async startCapturing() {
     const { cvRouter, cameraEnhancer } = this.resources;
 
-    if (
-      this.scanModeManager[docType] &&
-      Object.entries(this.scanModeManager).filter(([type, enabled]) => enabled && type !== docType).length === 0
-    ) {
-      console.warn("MRZ Scanner - At least one mode must be enabled");
-      this.DCEShowToast("At least one mode must be enabled");
-      return;
+    const currentTemplate = this.config.utilizedTemplateNames[this.currentScanMode];
+
+    try {
+      if (this.config.showScanGuide !== false) {
+        // Update ROI if scanGuide can be shown
+        const newSettings = await cvRouter.getSimplifiedSettings(currentTemplate);
+        newSettings.roiMeasuredInPercentage = true;
+        newSettings.roi.points = [
+          {
+            x: 0,
+            y: 66,
+          },
+          {
+            x: 100,
+            y: 66,
+          },
+          {
+            x: 100,
+            y: 100,
+          },
+          {
+            x: 0,
+            y: 100,
+          },
+        ];
+        await cvRouter.updateSettings(currentTemplate, newSettings);
+      }
+
+      await cvRouter.startCapturing(currentTemplate);
+
+      // By default, cameraEnhancer captures grayscale images to optimize performance.
+      // To capture RGB Images, we set the Pixel Format to EnumImagePixelFormat.IPF_ABGR_8888
+      cameraEnhancer.setPixelFormat(EnumImagePixelFormat.IPF_ABGR_8888);
+    } catch (ex: any) {
+      let errMsg = ex?.message || ex;
+      console.error("Failed to start capturing:", errMsg);
+      this.closeCamera();
+
+      if (this.currentScanResolver) {
+        this.currentScanResolver({
+          status: {
+            code: EnumResultStatus.RS_FAILED,
+            message: "Failed to start capturing",
+          },
+        });
+      }
     }
+  }
 
-    // Toggle the mode
-    this.scanModeManager[docType] = !this.scanModeManager[docType];
+  private async toggleScanDocType(docType: EnumMRZDocumentType): Promise<void> {
+    try {
+      if (
+        this.scanModeManager[docType] &&
+        Object.entries(this.scanModeManager).filter(([type, enabled]) => enabled && type !== docType).length === 0
+      ) {
+        console.warn("MRZ Scanner - At least one mode must be enabled");
+        this.DCEShowToast("At least one mode must be enabled");
+        return;
+      }
 
-    // Update current scan mode
-    this.currentScanMode = this.getScanMode();
+      // Toggle the mode
+      this.scanModeManager[docType] = !this.scanModeManager[docType];
 
-    cvRouter.stopCapturing();
-    await cvRouter.startCapturing(this.config.utilizedTemplateNames[this.currentScanMode]);
-    cameraEnhancer.setPixelFormat(EnumImagePixelFormat.IPF_ABGR_8888);
+      // Update current scan mode
+      this.currentScanMode = this.getScanMode();
 
-    this.toggleScanGuide();
+      this.stopCapturing();
+      await this.startCapturing();
 
-    this.DCE_ELEMENTS.td1ModeOption.classList.toggle("selected", this.scanModeManager[EnumMRZDocumentType.TD1]);
-    this.DCE_ELEMENTS.td2ModeOption.classList.toggle("selected", this.scanModeManager[EnumMRZDocumentType.TD2]);
-    this.DCE_ELEMENTS.passportModeOption.classList.toggle(
-      "selected",
-      this.scanModeManager[EnumMRZDocumentType.Passport]
-    );
+      this.toggleScanGuide();
+
+      this.DCE_ELEMENTS.td1ModeOption.classList.toggle("selected", this.scanModeManager[EnumMRZDocumentType.TD1]);
+      this.DCE_ELEMENTS.td2ModeOption.classList.toggle("selected", this.scanModeManager[EnumMRZDocumentType.TD2]);
+      this.DCE_ELEMENTS.passportModeOption.classList.toggle(
+        "selected",
+        this.scanModeManager[EnumMRZDocumentType.Passport]
+      );
+    } catch (ex: any) {
+      let errMsg = ex?.message || ex;
+      console.error("MRZ Scanner switch scan mode error: ", errMsg);
+      this.closeCamera();
+      const result = {
+        status: {
+          code: EnumResultStatus.RS_FAILED,
+          message: "MRZ Scanner switch scan mode error",
+        },
+      };
+      this.currentScanResolver(result);
+    }
   }
 
   async launch(): Promise<MRZResult> {
@@ -865,12 +926,7 @@ export default class MRZScannerView {
 
         // Start capturing
         await this.openCamera();
-
-        await cvRouter.startCapturing(this.config.utilizedTemplateNames[this.currentScanMode]);
-
-        // By default, cameraEnhancer captures grayscale images to optimize performance.
-        // To capture RGB Images, we set the Pixel Format to EnumImagePixelFormat.IPF_ABGR_8888
-        cameraEnhancer.setPixelFormat(EnumImagePixelFormat.IPF_ABGR_8888);
+        await this.startCapturing();
 
         //Show scan guide
         this.toggleScanGuide();
