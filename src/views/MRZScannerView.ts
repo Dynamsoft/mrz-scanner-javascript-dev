@@ -133,8 +133,8 @@ export default class MRZScannerView {
         strokeStyle: "transparent",
         fillStyle: "transparent",
         lineWidth: 0,
-      } as any);
-      cameraView.setVideoFit("cover");
+      });
+      cameraView.setVideoFit("contain");
 
       // Set cameraEnhancer as input for CaptureVisionRouter
       cvRouter.setInput(cameraEnhancer);
@@ -501,9 +501,11 @@ export default class MRZScannerView {
 
     if (!cameraEnhancer || !cameraEnhancer.isOpen()) return;
 
-    // Get visible region of video considering "cover" fit
+    // Get visible region of video
     const visibleRegion = cameraView.getVisibleRegionOfVideo({ inPixels: true });
     if (!visibleRegion) return;
+    const effectiveWidth = visibleRegion.width;
+    const effectiveHeight = visibleRegion.height;
 
     // Get the document ratio for the specific document type
     const targetRatio = MRZScanGuideRatios[documentType];
@@ -511,10 +513,6 @@ export default class MRZScannerView {
     // Calculate the base unit to scale the document dimensions
     // This determines how many pixels one unit of document measurement equals
     let baseUnit: number;
-
-    // Get the actual visible dimensions after "cover" fit
-    const effectiveWidth = visibleRegion.width;
-    const effectiveHeight = visibleRegion.height;
 
     // Calculate bottom margin of 5rem in pixels (assuming 16px per rem)
     const bottomMarginPx = 5 * 16;
