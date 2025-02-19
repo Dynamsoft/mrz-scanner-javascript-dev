@@ -1,6 +1,6 @@
 import { EnumValidationStatus, ParsedResultItem } from "dynamsoft-code-parser";
 import { OriginalImageResultItem } from "dynamsoft-core";
-import { EnumDocumentType, ResultStatus } from "./types";
+import { EnumMRZDocumentType, ResultStatus } from "./types";
 
 // TODO change to EnumMRZDataFields
 export enum EnumMRZData {
@@ -26,7 +26,7 @@ export interface MRZResult {
 
 export interface MRZData {
   [EnumMRZData.InvalidFields]?: EnumMRZData[];
-  [EnumMRZData.DocumentType]: EnumDocumentType;
+  [EnumMRZData.DocumentType]: EnumMRZDocumentType;
   [EnumMRZData.DocumentNumber]: string;
   [EnumMRZData.MRZText]: string;
   [EnumMRZData.FirstName]: string;
@@ -66,19 +66,19 @@ function parseMRZDate(year: string, month: string, day: string): MRZDate {
 }
 
 // Reference: https://www.dynamsoft.com/code-parser/docs/core/code-types/mrtd.html?lang=javascript
-function mapDocumentType(codeType: string): EnumDocumentType {
+function mapDocumentType(codeType: string): EnumMRZDocumentType {
   switch (codeType) {
     case "MRTD_TD1_ID":
-      return EnumDocumentType.TD1;
+      return EnumMRZDocumentType.TD1;
 
     case "MRTD_TD2_ID":
     case "MRTD_TD2_VISA":
     case "MRTD_TD2_FRENCH_ID":
-      return EnumDocumentType.TD2;
+      return EnumMRZDocumentType.TD2;
 
     case "MRTD_TD3_PASSPORT":
     case "MRTD_TD3_VISA":
-      return EnumDocumentType.Passport;
+      return EnumMRZDocumentType.Passport;
 
     default:
       throw new Error(`Unknown document type: ${codeType}`);
@@ -100,7 +100,7 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
   const documentType = mapDocumentType(codeType);
   // TODO Instead of Passport for TD3, check for visa..
   const documentNumberField =
-    documentType === EnumDocumentType.Passport && codeType !== "MRTD_TD3_VISA" ? "passportNumber" : "documentNumber";
+    documentType === EnumMRZDocumentType.Passport && codeType !== "MRTD_TD3_VISA" ? "passportNumber" : "documentNumber";
 
   // Date
   const dateOfBirth = parseMRZDate(

@@ -8,7 +8,7 @@ export enum EnumMRZScanMode {
   All = "all",
 }
 
-export enum EnumDocumentType {
+export enum EnumMRZDocumentType {
   Passport = "passport",
   TD1 = "td1",
   TD2 = "td2",

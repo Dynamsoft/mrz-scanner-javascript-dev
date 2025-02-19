@@ -6,6 +6,7 @@ import { CodeParserModule } from "dynamsoft-code-parser";
 import { LabelRecognizerModule } from "dynamsoft-label-recognizer";
 import {
   DEFAULT_TEMPLATE_NAMES,
+  EnumMRZDocumentType,
   EnumMRZScanMode,
   EnumMRZScannerViews,
   EnumResultStatus,
@@ -13,7 +14,7 @@ import {
 } from "./views/utils/types";
 import { getElement, isEmptyObject } from "./views/utils";
 import MRZScannerView, { MRZScannerViewConfig } from "./views/MRZScannerView";
-import { MRZResult } from "./views/utils/MRZScannerParser";
+import { MRZResult } from "./views/utils/MRZParser";
 
 // Default DCE UI path
 const DEFAULT_DCE_UI_PATH = "../dist/mrz-scanner.ui.html";
@@ -36,8 +37,8 @@ export interface MRZScannerConfig {
   // Views Config
   scannerViewConfig?: Omit<MRZScannerViewConfig, "templateFilePath" | "utilizedTemplateNames">;
 
+  mrzFormatType?: Array<EnumMRZDocumentType>;
   showResultView?: boolean;
-  showCorrectionView?: boolean;
 }
 
 export interface SharedResources {
@@ -235,6 +236,7 @@ class MRZScanner {
       cameraEnhancerUIPath: this.config.scannerViewConfig?.cameraEnhancerUIPath || DEFAULT_DCE_UI_PATH,
       templateFilePath: baseConfig.templateFilePath,
       utilizedTemplateNames: baseConfig.utilizedTemplateNames,
+      mrzFormatType: this.config.mrzFormatType,
     };
 
     // const resultViewConfig = this.showResultView()

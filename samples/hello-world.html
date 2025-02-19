@@ -17,10 +17,15 @@
       // Initialize the Dynamsoft MRZ Scanner
       const mrzscanner = new Dynamsoft.MRZScanner({
         license: "YOUR_LICENSE_KEY_HERE",
+        scannerViewConfig: {
+          // showScanGuide: false,
+          // showFormatSelector: false,
+        },
+        mrzFormatType: ["td1", "passport", "td2"],
       });
       (async () => {
         // Launch the scanner and wait for the result
-        const result = await mrzscanner.launch();
+        const result = await mrzscanner.launch({});
         console.log(result);
 
         if (result?.data) {
