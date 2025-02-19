@@ -45,6 +45,21 @@ export interface MRZDate {
   day: number;
 }
 
+export const MRZDataLabel: Partial<Record<EnumMRZData, string>> = {
+  // Not showing Invalid Fields
+  [EnumMRZData.DocumentType]: "Document Type",
+  [EnumMRZData.DocumentNumber]: "Document Number",
+  [EnumMRZData.MRZText]: "MRZ Text",
+  [EnumMRZData.FirstName]: "First Name",
+  [EnumMRZData.LastName]: "Last Name",
+  [EnumMRZData.Age]: "Age",
+  [EnumMRZData.Sex]: "Sex",
+  [EnumMRZData.IssuingState]: "Issuing State",
+  [EnumMRZData.Nationality]: "Nationality",
+  [EnumMRZData.DateOfBirth]: "Date Of Birth (YYY-MM-DD)",
+  [EnumMRZData.DateOfExpiry]: "Date Of Expiry (YYY-MM-DD)",
+};
+
 function calculateAge(birthDate: MRZDate): number {
   const now = new Date();
   const hasBirthdayOccurred =
@@ -63,6 +78,10 @@ function parseMRZDate(year: string, month: string, day: string): MRZDate {
     month: parseInt(month, 10),
     day: parseInt(day, 10),
   };
+}
+
+export function displayMRZDate(date: MRZDate) {
+  return `${date?.year}-${date?.month}${date?.day && `-${date?.day}`}`;
 }
 
 // Reference: https://www.dynamsoft.com/code-parser/docs/core/code-types/mrtd.html?lang=javascript

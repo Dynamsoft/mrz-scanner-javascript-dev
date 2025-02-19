@@ -19,7 +19,7 @@ export interface MRZScannerViewConfig {
   showScanGuide?: boolean;
   showLoadImage?: boolean;
   showFormatSelector?: boolean;
-  showSoundToogle?: boolean;
+  showSoundToggle?: boolean;
 }
 
 const MRZScanGuideRatios: Record<EnumMRZDocumentType, { width: number; height: number }> = {
@@ -130,9 +130,9 @@ export default class MRZScannerView {
       // Set up cameraView styling
       cameraView.setScanRegionMaskStyle({
         strokeStyle: "transparent",
-        fillStyle: "transparent",
+        // fillStyle: "transparent",
         lineWidth: 0,
-      });
+      } as any);
       cameraView.setVideoFit("cover");
 
       // Set cameraEnhancer as input for CaptureVisionRouter
@@ -195,6 +195,16 @@ export default class MRZScannerView {
 
     // Hide toast
     this.DCE_ELEMENTS.toast.style.display = "none";
+
+    // Hide configs
+
+    if (this.config.showLoadImage === false) {
+      this.DCE_ELEMENTS.uploadImageBtn.style.display = "none";
+    }
+
+    if (this.config.showSoundToggle === false) {
+      this.DCE_ELEMENTS.soundFeedbackBtn.style.display = "none";
+    }
 
     this.initializedDCE = true;
   }

@@ -15,6 +15,7 @@ import {
 import { getElement, isEmptyObject } from "./views/utils";
 import MRZScannerView, { MRZScannerViewConfig } from "./views/MRZScannerView";
 import { MRZResult } from "./views/utils/MRZParser";
+import MRZResultView, { MRZResultViewConfig } from "./views/MRZResultView";
 
 // Default DCE UI path
 const DEFAULT_DCE_UI_PATH = "../dist/mrz-scanner.ui.html";
@@ -36,6 +37,7 @@ export interface MRZScannerConfig {
 
   // Views Config
   scannerViewConfig?: Omit<MRZScannerViewConfig, "templateFilePath" | "utilizedTemplateNames">;
+  resultViewConfig?: MRZResultViewConfig;
 
   mrzFormatType?: Array<EnumMRZDocumentType>;
   showResultView?: boolean;
@@ -51,6 +53,8 @@ export interface SharedResources {
 
 class MRZScanner {
   private scannerView?: MRZScannerView;
+  private resultView?: MRZResultView;
+
   private resources: Partial<SharedResources> = {};
   private isInitialized = false;
   private isCapturing = false;
@@ -61,6 +65,7 @@ class MRZScanner {
     resources: SharedResources;
     components: {
       scannerView?: MRZScannerView;
+      resultView?: MRZResultView;
     };
   }> {
     if (this.isInitialized) {
@@ -68,6 +73,7 @@ class MRZScanner {
         resources: this.resources as SharedResources,
         components: {
           scannerView: this.scannerView,
+          resultView: this.resultView,
         },
       };
     }
@@ -83,6 +89,7 @@ class MRZScanner {
 
       const components: {
         scannerView?: MRZScannerView;
+        resultView?: MRZResultView;
       } = {};
 
       // Only initialize components that are configured
@@ -92,15 +99,10 @@ class MRZScanner {
         await this.scannerView.initialize();
       }
 
-      // if (this.config.resultViewConfig) {
-      //   this.scanResultView = new DocumentResultView(
-      //     this.resources,
-      //     this.config.resultViewConfig,
-      //     this.scannerView,
-      //     this.correctionView
-      //   );
-      //   components.scanResultView = this.scanResultView;
-      // }
+      if (this.config.resultViewConfig) {
+        this.resultView = new MRZResultView(this.resources, this.config.resultViewConfig, this.scannerView);
+        components.resultView = this.resultView;
+      }
 
       this.isInitialized = true;
 
@@ -142,11 +144,7 @@ class MRZScanner {
 
   private shouldCreateDefaultContainer(): boolean {
     const hasNoMainContainer = !this.config.container;
-    const hasNoViewContainers =
-      !(
-        this.config.scannerViewConfig?.container
-        // || this.config.resultViewConfig?.container
-      );
+    const hasNoViewContainers = !(this.config.scannerViewConfig?.container || this.config.resultViewConfig?.container);
     return hasNoMainContainer && hasNoViewContainers;
   }
 
@@ -180,33 +178,32 @@ class MRZScanner {
   private validateViewConfigs() {
     // Only validate if there's no main container
     if (!this.config.container) {
-      // Check correction view
-      // // Check result view
-      // if (this.config.showResultView && !this.config.resultViewConfig?.container) {
-      //   throw new Error(
-      //     "ResultView container is required when showResultView is true and no main container is provided"
-      //   );
-      // }
+      // Check result view
+      if (this.config.showResultView && !this.config.resultViewConfig?.container) {
+        throw new Error(
+          "ResultView container is required when showResultView is true and no main container is provided"
+        );
+      }
     }
   }
 
-  // private showResultView() {
-  //   if (this.config.showResultView === false) return false;
+  private showResultView() {
+    if (this.config.showResultView === false) return false;
 
-  //   // If we have a main container, follow existing logic
-  //   if (this.config.container) {
-  //     if (
-  //       this.config.showResultView === undefined &&
-  //       (this.config.resultViewConfig?.container || this.config.container)
-  //     ) {
-  //       return true;
-  //     }
-  //     return !!this.config.showResultView;
-  //   }
+    // If we have a main container, follow existing logic
+    if (this.config.container) {
+      if (
+        this.config.showResultView === undefined &&
+        (this.config.resultViewConfig?.container || this.config.container)
+      ) {
+        return true;
+      }
+      return !!this.config.showResultView;
+    }
 
-  //   // Without main container, require specific container
-  //   return this.config.showResultView && !!this.config.resultViewConfig?.container;
-  // }
+    // Without main container, require specific container
+    return this.config.showResultView && !!this.config.resultViewConfig?.container;
+  }
 
   private initializeMRZScannerConfig() {
     this.validateViewConfigs();
@@ -239,18 +236,17 @@ class MRZScanner {
       mrzFormatType: this.config.mrzFormatType,
     };
 
-    // const resultViewConfig = this.showResultView()
-    //   ? {
-    //       ...this.config.resultViewConfig,
-    //       container: viewContainers[EnumDDSViews.Result] || this.config.resultViewConfig?.container || null,
-    //     }
-    //   : undefined;
+    const resultViewConfig = this.showResultView()
+      ? {
+          ...this.config.resultViewConfig,
+          container: viewContainers[EnumMRZScannerViews.Result] || this.config.resultViewConfig?.container || null,
+        }
+      : undefined;
 
     Object.assign(this.config, {
       ...baseConfig,
       scannerViewConfig,
-      // correctionViewConfig,
-      // resultViewConfig,
+      resultViewConfig,
     });
   }
 
@@ -259,8 +255,7 @@ class MRZScanner {
 
     const views: EnumMRZScannerViews[] = [EnumMRZScannerViews.Scanner];
 
-    // if (this.showCorrectionView()) views.push(EnumDDSViews.Correction);
-    // if (this.showResultView()) views.push(EnumDDSViews.Result);
+    if (this.showResultView()) views.push(EnumMRZScannerViews.Result);
 
     return views.reduce((containers, view) => {
       const viewContainer = document.createElement("div");
@@ -280,15 +275,10 @@ class MRZScanner {
   }
 
   dispose(): void {
-    // if (this.scanResultView) {
-    //   this.scanResultView.dispose();
-    //   this.scanResultView = null;
-    // }
-
-    // if (this.correctionView) {
-    //   this.correctionView.dispose();
-    //   this.correctionView = null;
-    // }
+    if (this.resultView) {
+      this.resultView.dispose();
+      this.resultView = null;
+    }
 
     this.scannerView = null;
 
@@ -322,8 +312,7 @@ class MRZScanner {
 
     cleanContainer(this.config.container);
     cleanContainer(this.config.scannerViewConfig?.container);
-    // cleanContainer(this.config.correctionViewConfig?.container);
-    // cleanContainer(this.config.resultViewConfig?.container);
+    cleanContainer(this.config.resultViewConfig?.container);
 
     this.isInitialized = false;
   }
@@ -342,10 +331,9 @@ class MRZScanner {
       }
 
       // Special case handling for direct views with existing results
-      // if (!components.scannerView && this.resources.result) {
-      //   if (components.correctionView) return await components.correctionView.launch();
-      //   if (components.scanResultView) return await components.scanResultView.launch();
-      // }
+      if (!components.scannerView && this.resources.result) {
+        if (components.resultView) return await components.resultView.launch();
+      }
 
       // Scanner view is required if no existing result
       if (!components.scannerView && !this.resources.result) {
@@ -366,25 +354,15 @@ class MRZScanner {
         }
 
         // Route based on capture method
-        // if (components.correctionView && components.scanResultView) {
-        //   if (shouldCorrectImage(scanResult._flowType)) {
-        //     await components.correctionView.launch();
-        //     return await components.scanResultView.launch();
-        //   }
-        // }
-
-        // Default routing
-        // if (components.correctionView && !components.scanResultView) {
-        //   return await components.correctionView.launch();
-        // }
-        // if (components.scanResultView) {
-        //   return await components.scanResultView.launch();
-        // }
+        if (components.resultView) {
+          return await components.resultView.launch();
+        }
       }
 
       // If no additional views, return current result
       return this.resources.result;
     } catch (error) {
+      alert(`MRZ Scanner failed: ${error?.message || error}`);
       console.error("MRZ Scanner failed:", error?.message || error);
       return {
         status: {
