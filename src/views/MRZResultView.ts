@@ -147,7 +147,7 @@ export default class MRZResultView {
   }
 
   private createMRZDataDisplay() {
-    const mrzData = this.resources.result?.data || {};
+    const mrzData = this.resources.result?.data || ({} as MRZData);
 
     if (!isEmptyObject(mrzData)) {
       const resultContainer = document.createElement("div");
@@ -165,7 +165,13 @@ export default class MRZResultView {
         const resultLabel = document.createElement("span");
         resultLabel.className = "dynamsoft-mrz-data-label";
         resultLabel.innerText = MRZDataLabel[key as EnumMRZData];
-        // TODO show verification with invalid fields
+
+        // add validation marker for invalid fields
+        if (mrzData.invalidFields?.includes(key as EnumMRZData)) {
+          const invalidIcon = document.createElement("span");
+          invalidIcon.innerHTML = MRZScanner_ICONS.failed;
+          resultLabel.appendChild(invalidIcon);
+        }
 
         const resultValue = document.createElement("span");
         resultValue.className = "dynamsoft-mrz-data-value";
@@ -286,6 +292,15 @@ const DEFAULT_RESULT_VIEW_STYLE = `
 
 .dynamsoft-mrz-data-label {
   color: #aaa;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dynamsoft-mrz-data-label span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dynamsoft-mrz-data-value {
