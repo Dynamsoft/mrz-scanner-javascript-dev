@@ -408,11 +408,15 @@ export default class MRZScannerView {
       this.closeCamera(false);
 
       // Convert file to blob
-      const { blob } = await this.fileToBlob(file);
+      const templateName = this.config.utilizedTemplateNames[this.currentScanMode];
 
-      const capturedResult = await this.resources.cvRouter.capture(blob, this.currentScanMode);
+      const capturedResult = await this.resources.cvRouter.capture(file, templateName);
       this.capturedResultItems = capturedResult.items;
-      this.originalImageData = (this.capturedResultItems[0] as OriginalImageResultItem)?.imageData;
+      const originalImage = this.capturedResultItems.filter(
+        (item) => item.type === EnumCapturedResultItemType.CRIT_ORIGINAL_IMAGE
+      ) as OriginalImageResultItem[];
+
+      this.originalImageData = originalImage.length && originalImage[0].imageData;
 
       const textLineResultItems = capturedResult?.textLineResultItems;
       const parsedResultItems = capturedResult?.parsedResultItems;
@@ -458,28 +462,6 @@ export default class MRZScannerView {
     } finally {
       document.body.removeChild(input);
     }
-  }
-
-  private async fileToBlob(file: File): Promise<{ blob: Blob; width: number; height: number }> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            resolve({ blob, width: img.width, height: img.height });
-          } else {
-            reject(new Error("Failed to create blob"));
-          }
-        }, file.type);
-      };
-      img.onerror = reject;
-      img.src = URL.createObjectURL(file);
-    });
   }
 
   private toggleSoundFeedback(enabled?: boolean) {

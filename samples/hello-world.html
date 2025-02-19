@@ -31,11 +31,15 @@
         if (result?.data) {
           resultContainer.innerHTML = ""; // Clear placeholder content
 
-          const canvas = result.originalImageResult.toCanvas();
-          canvas.style.objectFit = "contain";
-          canvas.style.width = "100%";
-          canvas.style.height = "100%";
-          resultContainer.appendChild(canvas);
+          // TODO image on upload
+          if (result.originalImageResult?.toCanvas) {
+            const canvas = result.originalImageResult?.toCanvas();
+
+            canvas.style.objectFit = "contain";
+            canvas.style.width = "100%";
+            canvas.style.height = "100%";
+            resultContainer.appendChild(canvas);
+          }
 
           let resultHTML = ``;
           Object.entries(result.data).forEach(([key, value]) => {
