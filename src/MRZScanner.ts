@@ -12,10 +12,11 @@ import {
   EnumResultStatus,
   UtilizedTemplateNames,
 } from "./views/utils/types";
-import { getElement, isEmptyObject } from "./views/utils";
+import { createStyle, getElement, isEmptyObject } from "./views/utils";
 import MRZScannerView, { MRZScannerViewConfig } from "./views/MRZScannerView";
 import { MRZResult } from "./views/utils/MRZParser";
 import MRZResultView, { MRZResultViewConfig } from "./views/MRZResultView";
+import { DEFAULT_LOADING_SCREEN_STYLE, showLoadingScreen } from "./views/utils/LoadingScreen";
 
 // Default DCE UI path
 const DEFAULT_DCE_UI_PATH = "../dist/mrz-scanner.ui.html";
@@ -59,6 +60,26 @@ class MRZScanner {
   private isInitialized = false;
   private isCapturing = false;
 
+  private loadingScreen: ReturnType<typeof showLoadingScreen> | null = null;
+
+  private showLoadingOverlay(message?: string) {
+    const configContainer = getElement(this.config.container);
+    this.loadingScreen = showLoadingScreen(configContainer, { message });
+    configContainer.style.display = "block";
+    configContainer.style.position = "relative";
+  }
+
+  private hideLoadingOverlay(hideContainer: boolean = false) {
+    if (this.loadingScreen) {
+      this.loadingScreen.hide();
+      this.loadingScreen = null;
+
+      if (hideContainer) {
+        getElement(this.config.container).style.display = "none";
+      }
+    }
+  }
+
   constructor(private config: MRZScannerConfig) {}
 
   async initialize(): Promise<{
@@ -80,6 +101,11 @@ class MRZScanner {
 
     try {
       this.initializeMRZScannerConfig();
+
+      // Create loading screen style
+      createStyle("dynamsoft-mrz-loading-screen-style", DEFAULT_LOADING_SCREEN_STYLE);
+
+      this.showLoadingOverlay("Loading...");
 
       await this.initializeDCVResources();
 
@@ -105,6 +131,8 @@ class MRZScanner {
       }
 
       this.isInitialized = true;
+
+      this.hideLoadingOverlay();
 
       return { resources: this.resources, components };
     } catch (ex: any) {

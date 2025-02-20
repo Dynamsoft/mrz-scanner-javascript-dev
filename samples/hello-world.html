@@ -23,7 +23,7 @@
           // showUploadImage: false,
           // showSoundToggle: false,
         },
-        mrzFormatType: ["td1", "passport", "td2"],
+        // mrzFormatType: ["td1", "passport", "td2"],
         // showResultView: false,
       });
       (async () => {
@@ -34,7 +34,6 @@
         if (result?.data) {
           resultContainer.innerHTML = ""; // Clear placeholder content
 
-          // TODO image on upload
           if (result.originalImageResult?.toCanvas) {
             const canvas = result.originalImageResult?.toCanvas();
 
