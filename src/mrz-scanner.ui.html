@@ -2555,9 +2555,102 @@
       <div class="dce-mn-zoom">- <span>1.0X</span> -</div>
       <div class="dce-mn-toast"></div>
       <div class="dce-mn-scan-mode-select">
-        <div class="scan-mode-option-passport dce-mn-scan-mode-option selected">Passport (TD3)</div>
-        <div class="scan-mode-option-td1 dce-mn-scan-mode-option selected">ID (TD1)</div>
-        <div class="scan-mode-option-td2 dce-mn-scan-mode-option selected">ID (TD2)</div>
+        <div class="scan-mode-option-passport dce-mn-scan-mode-option selected">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="#fe8e14"
+            stroke="#fe8e14"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            width="20"
+            height="20"
+            stroke-width="0.75"
+            class="checkbox-selected"
+          >
+            <path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"></path>
+            <path d="M9 12l2 2l4 -4" stroke="white" style="transform: scale(2); transform-origin: center"></path>
+          </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            width="20"
+            height="20"
+            stroke-width="0.75"
+            class="checkbox-not-selected"
+          >
+            <path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"></path>
+          </svg>
+          Passport (TD3)
+        </div>
+        <div class="scan-mode-option-td1 dce-mn-scan-mode-option selected">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="#fe8e14"
+            stroke="#fe8e14"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            width="20"
+            height="20"
+            stroke-width="0.75"
+            class="checkbox-selected"
+          >
+            <path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"></path>
+            <path d="M9 12l2 2l4 -4" stroke="white" style="transform: scale(2); transform-origin: center"></path>
+          </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            width="20"
+            height="20"
+            stroke-width="0.75"
+            class="checkbox-not-selected"
+          >
+            <path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"></path>
+          </svg>
+          ID (TD1)
+        </div>
+        <div class="scan-mode-option-td2 dce-mn-scan-mode-option selected">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="#fe8e14"
+            stroke="#fe8e14"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            width="20"
+            height="20"
+            stroke-width="0.75"
+            class="checkbox-selected"
+          >
+            <path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"></path>
+            <path d="M9 12l2 2l4 -4" stroke="white" style="transform: scale(2); transform-origin: center"></path>
+          </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            width="20"
+            height="20"
+            stroke-width="0.75"
+            class="checkbox-not-selected"
+          >
+            <path d="M3 3m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"></path>
+          </svg>
+          ID (TD2)
+        </div>
       </div>
       <svg class="dce-mn-msg-poweredby" viewBox="0 0 94 17">
         <path
@@ -2891,25 +2984,42 @@
       left: 50%;
       transform: translateX(-50%);
       width: max-content;
-      background-color: rgb(34, 34, 34);
+      background: rgb(34, 34, 34, 0.8);
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      opacity: 0.8;
       align-items: flex-end;
       justify-content: space-evenly;
       border-radius: 8px;
       font-size: 12px;
       font-family: Verdana;
       display: flex;
+      gap: 0.25rem;
     }
 
     .dce-mn-scan-mode-select .dce-mn-scan-mode-option {
       text-align: center;
       padding: 0.5rem;
       cursor: pointer;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
     }
 
     .dce-mn-scan-mode-select .dce-mn-scan-mode-option.selected {
       color: #fe8e14;
+    }
+
+    .dce-mn-scan-mode-select .dce-mn-scan-mode-option .checkbox-selected {
+      display: none;
+    }
+    .dce-mn-scan-mode-select .dce-mn-scan-mode-option .checkbox-not-selected {
+      display: block;
+    }
+
+    .dce-mn-scan-mode-select .dce-mn-scan-mode-option.selected .checkbox-selected {
+      display: block;
+    }
+    .dce-mn-scan-mode-select .dce-mn-scan-mode-option.selected .checkbox-not-selected {
+      display: none;
     }
 
     .dce-mn-camera-option {
@@ -2943,6 +3053,15 @@
       border-radius: max(0.75vmin, 6px);
       background: rgba(100, 100, 100, 0.5);
       cursor: pointer;
+    }
+
+    @media screen and (min-width: 900px) {
+      .dce-mn-scan-mode-select {
+        bottom: 10rem;
+      }
+      .dce-mn-scan-mode-select {
+        font-size: 14px;
+      }
     }
   </style>
 </template>
