@@ -7,6 +7,7 @@ import { createStyle, findClosestResolutionLevel, getElement } from "./utils";
 import { MRZData, MRZResult, processMRZData } from "./utils/MRZParser";
 import { ParsedResultItem } from "dynamsoft-code-parser";
 import { Feedback } from "dynamsoft-camera-enhancer";
+import { MultiFrameResultCrossFilter } from "dynamsoft-utility";
 
 export interface MRZScannerViewConfig {
   cameraEnhancerUIPath?: string;
@@ -20,6 +21,8 @@ export interface MRZScannerViewConfig {
   showUploadImage?: boolean;
   showFormatSelector?: boolean;
   showSoundToggle?: boolean;
+
+  enableMultiFrameCrossFilter?: boolean; // false by default
 }
 
 const MRZScanGuideRatios: Record<EnumMRZDocumentType, { width: number; height: number }> = {
@@ -132,7 +135,7 @@ export default class MRZScannerView {
         strokeStyle: "transparent",
         fillStyle: "transparent",
         lineWidth: 0,
-      } as any);
+      });
       cameraView.setVideoFit("contain");
 
       // Set cameraEnhancer as input for CaptureVisionRouter
@@ -140,6 +143,13 @@ export default class MRZScannerView {
 
       // Initialize the template parameters for mrz scanning
       await cvRouter.initSettings(this.config.templateFilePath);
+
+      if (this.config.enableMultiFrameCrossFilter === true) {
+        const filter = new MultiFrameResultCrossFilter();
+        filter.enableResultCrossVerification(EnumCapturedResultItemType.CRIT_TEXT_LINE, true);
+        filter.enableResultDeduplication(EnumCapturedResultItemType.CRIT_TEXT_LINE, true);
+        await cvRouter.addResultFilter(filter);
+      }
 
       const resultReceiver = new CapturedResultReceiver();
       resultReceiver.onCapturedResultReceived = (result) => this.handleMRZResult(result);
