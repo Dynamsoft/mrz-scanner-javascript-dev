@@ -149,10 +149,10 @@ export default class MRZResultView {
   private createMRZDataDisplay() {
     const mrzData = this.resources.result?.data || ({} as MRZData);
 
-    if (!isEmptyObject(mrzData)) {
-      const resultContainer = document.createElement("div");
-      resultContainer.className = "dynamsoft-mrz-data-container";
+    const resultContainer = document.createElement("div");
+    resultContainer.className = "dynamsoft-mrz-data-container";
 
+    if (!isEmptyObject(mrzData)) {
       Object.entries(mrzData).forEach(([key, value]) => {
         if (key === EnumMRZData.InvalidFields || !value) {
           // Dont post invalid fields
@@ -190,6 +190,13 @@ export default class MRZResultView {
       });
 
       return resultContainer;
+    } else {
+      const empty = document.createElement("div");
+      empty.className = "dynamsoft-mrz-data-row";
+      empty.innerText = "No MRZ detected. Please try again.";
+
+      resultContainer.appendChild(empty);
+      return resultContainer;
     }
   }
 
@@ -217,7 +224,8 @@ export default class MRZResultView {
         alignItems: "center",
       });
 
-      if (this.config.showOriginalImage !== false && (this.resources.result.originalImageResult as any)?.toCanvas) {
+      if (this.config.showOriginalImage !== false) {
+        const imageResult = this.resources.result.originalImageResult;
         // Create and add scan result view image container
         const scanResultViewImageContainer = document.createElement("div");
         Object.assign(scanResultViewImageContainer.style, {
@@ -230,7 +238,10 @@ export default class MRZResultView {
         });
 
         // Add scan result image
-        const scanResultImg = (this.resources.result.originalImageResult as any)?.toCanvas();
+        let scanResultImg: any;
+        if ((imageResult as any)?.toCanvas) {
+          scanResultImg = (imageResult as any)?.toCanvas();
+        }
         Object.assign(scanResultImg.style, {
           maxWidth: "100%",
           maxHeight: "100%",

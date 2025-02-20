@@ -432,7 +432,23 @@ export default class MRZScannerView {
         (item) => item.type === EnumCapturedResultItemType.CRIT_ORIGINAL_IMAGE
       ) as OriginalImageResultItem[];
 
-      this.originalImageData = originalImage.length && originalImage[0].imageData;
+      const imageData = originalImage[0].imageData;
+      (imageData as any).toCanvas = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = imageData.width;
+        canvas.height = imageData.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          throw new Error("Failed to get canvas context");
+        }
+
+        // Create ImageData from the bytes
+        const imgData = new ImageData(new Uint8ClampedArray(imageData.bytes.buffer), imageData.width, imageData.height);
+        ctx.putImageData(imgData, 0, 0);
+
+        return canvas;
+      };
+      this.originalImageData = imageData;
 
       const textLineResultItems = capturedResult?.textLineResultItems;
       const parsedResultItems = capturedResult?.parsedResultItems;
