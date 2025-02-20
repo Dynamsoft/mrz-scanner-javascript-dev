@@ -391,6 +391,8 @@ export default class MRZScannerView {
   }
 
   private async uploadImage() {
+    const { cvRouter } = this.resources;
+
     // Create hidden file input
     const input = document.createElement("input");
     input.type = "file";
@@ -424,9 +426,34 @@ export default class MRZScannerView {
       this.closeCamera(false);
 
       // Convert file to blob
-      const templateName = this.config.utilizedTemplateNames[this.currentScanMode];
+      const currentTemplate = this.config.utilizedTemplateNames[this.currentScanMode];
 
-      const capturedResult = await this.resources.cvRouter.capture(file, templateName);
+      if (this.config.showScanGuide !== false) {
+        // Update ROI if scanGuide can be shown
+        const newSettings = await cvRouter.getSimplifiedSettings(currentTemplate);
+        newSettings.roiMeasuredInPercentage = true;
+        newSettings.roi.points = [
+          {
+            x: 0,
+            y: 0,
+          },
+          {
+            x: 100,
+            y: 0,
+          },
+          {
+            x: 100,
+            y: 100,
+          },
+          {
+            x: 0,
+            y: 100,
+          },
+        ];
+        await cvRouter.updateSettings(currentTemplate, newSettings);
+      }
+
+      const capturedResult = await cvRouter.capture(file, currentTemplate);
       this.capturedResultItems = capturedResult.items;
       const originalImage = this.capturedResultItems.filter(
         (item) => item.type === EnumCapturedResultItemType.CRIT_ORIGINAL_IMAGE
