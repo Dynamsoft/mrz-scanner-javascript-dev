@@ -18,7 +18,7 @@ export interface MRZScannerViewConfig {
 
   // Customize Scanner
   showScanGuide?: boolean;
-  showLoadImage?: boolean;
+  showUploadImage?: boolean;
   showFormatSelector?: boolean;
   showSoundToggle?: boolean;
 }
@@ -204,7 +204,7 @@ export default class MRZScannerView {
 
     // Hide configs
 
-    if (this.config.showLoadImage === false) {
+    if (this.config.showUploadImage === false) {
       this.DCE_ELEMENTS.uploadImageBtn.style.display = "none";
     }
 
