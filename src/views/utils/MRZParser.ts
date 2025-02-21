@@ -56,8 +56,8 @@ export const MRZDataLabel: Partial<Record<EnumMRZData, string>> = {
   [EnumMRZData.Sex]: "Sex",
   [EnumMRZData.IssuingState]: "Issuing State",
   [EnumMRZData.Nationality]: "Nationality",
-  [EnumMRZData.DateOfBirth]: "Date Of Birth (YYY-MM-DD)",
-  [EnumMRZData.DateOfExpiry]: "Date Of Expiry (YYY-MM-DD)",
+  [EnumMRZData.DateOfBirth]: "Date Of Birth (YY/MM/DD)",
+  [EnumMRZData.DateOfExpiry]: "Date Of Expiry (YY/MM/DD)",
 };
 
 function calculateAge(birthDate: MRZDate): number {
@@ -68,20 +68,17 @@ function calculateAge(birthDate: MRZDate): number {
   return now.getFullYear() - birthDate.year - (hasBirthdayOccurred ? 0 : 1);
 }
 
-function parseMRZDate(year: string, month: string, day: string): MRZDate {
-  const twoDigitYear = parseInt(year, 10);
-  const currentYear = new Date().getFullYear();
-  const century = twoDigitYear > currentYear % 100 ? 1900 : 2000;
-
+function parseMRZDate(year: string, month: string, day: string, future: boolean = false): MRZDate {
   return {
-    year: century + twoDigitYear,
+    year: parseInt(year, 10),
     month: parseInt(month, 10),
     day: parseInt(day, 10),
   };
 }
 
 export function displayMRZDate(date: MRZDate) {
-  return `${date?.year}-${date?.month}${date?.day && `-${date?.day}`}`;
+  const twoDigit = (num: number) => (`${num}`?.length === 1 ? `0${num}` : num);
+  return `${twoDigit(date?.year)}/${twoDigit(date?.month)}${date?.day && `/${twoDigit(date?.day)}`}`;
 }
 
 // Reference: https://www.dynamsoft.com/code-parser/docs/core/code-types/mrtd.html?lang=javascript
@@ -185,7 +182,6 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
     [EnumMRZData.InvalidFields]: invalidFields,
     [EnumMRZData.MRZText]: mrzText,
     [EnumMRZData.DocumentType]: documentType,
-
     [EnumMRZData.Age]: age,
     ...fields,
     [EnumMRZData.DateOfBirth]: dateOfBirth,
