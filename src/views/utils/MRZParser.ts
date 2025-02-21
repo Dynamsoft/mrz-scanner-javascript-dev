@@ -1,5 +1,5 @@
 import { EnumValidationStatus, ParsedResultItem } from "dynamsoft-code-parser";
-import { OriginalImageResultItem } from "dynamsoft-core";
+import { DSImageData } from "dynamsoft-core";
 import { EnumMRZDocumentType, ResultStatus } from "./types";
 import { capitalize } from ".";
 
@@ -21,8 +21,10 @@ export enum EnumMRZData {
 
 export interface MRZResult {
   status: ResultStatus;
-  originalImageResult?: OriginalImageResultItem["imageData"];
+  originalImageResult?: DSImageData;
   data?: MRZData;
+
+  _imageData?: DSImageData;
 }
 
 export interface MRZData {
@@ -66,7 +68,11 @@ function calculateAge(birthDate: MRZDate): number {
   const hasBirthdayOccurred =
     now.getMonth() + 1 > birthDate.month || (now.getMonth() + 1 === birthDate.month && now.getDate() >= birthDate.day);
 
-  return now.getFullYear() - birthDate.year - (hasBirthdayOccurred ? 0 : 1);
+  const currentYear = new Date().getFullYear();
+  const birthCentury = birthDate.year > currentYear % 100 ? 1900 : 2000;
+  const birthYearFull = birthCentury + birthDate.year;
+
+  return now.getFullYear() - birthYearFull - (hasBirthdayOccurred ? 0 : 1);
 }
 
 function parseMRZDate(year: string, month: string, day: string, future: boolean = false): MRZDate {
@@ -79,7 +85,7 @@ function parseMRZDate(year: string, month: string, day: string, future: boolean 
 
 export function displayMRZDate(date: MRZDate) {
   const twoDigit = (num: number) => (`${num}`?.length === 1 ? `0${num}` : num);
-  return `${twoDigit(date?.year)}/${twoDigit(date?.month)}${date?.day && `/${twoDigit(date?.day)}`}`;
+  return `${twoDigit(date?.year)} / ${twoDigit(date?.month)}${date?.day && ` / ${twoDigit(date?.day)}`}`;
 }
 
 // Reference: https://www.dynamsoft.com/code-parser/docs/core/code-types/mrtd.html?lang=javascript
@@ -114,10 +120,14 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
 
   // Document Type and Name
   const codeType = parsedResult.codeType;
-  const documentType = capitalize(mapDocumentType(codeType));
+  const documentType = mapDocumentType(codeType);
   // TODO Instead of Passport for TD3, check for visa..
+
+  console.log(documentType, documentType === EnumMRZDocumentType.Passport && codeType === "MRTD_TD3_PASSPORT");
   const documentNumberField =
-    documentType === EnumMRZDocumentType.Passport && codeType !== "MRTD_TD3_VISA" ? "passportNumber" : "documentNumber";
+    documentType === EnumMRZDocumentType.Passport && codeType === "MRTD_TD3_PASSPORT"
+      ? "passportNumber"
+      : "documentCode";
 
   // Date
   const dateOfBirth = parseMRZDate(
@@ -182,7 +192,7 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
   const mrzData: MRZData = {
     [EnumMRZData.InvalidFields]: invalidFields,
     [EnumMRZData.MRZText]: mrzText,
-    [EnumMRZData.DocumentType]: documentType,
+    [EnumMRZData.DocumentType]: capitalize(documentType),
     [EnumMRZData.Age]: age,
     ...fields,
     [EnumMRZData.DateOfBirth]: dateOfBirth,

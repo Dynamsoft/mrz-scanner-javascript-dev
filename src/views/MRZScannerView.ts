@@ -713,25 +713,30 @@ export default class MRZScannerView {
   }
 
   async closeCamera(hideContainer: boolean = true) {
-    // Remove resize event listener
-    window.removeEventListener("resize", this.handleResize);
-    // Clear any existing resize timer
-    if (this.resizeTimer) {
-      window.clearTimeout(this.resizeTimer);
-      this.resizeTimer = null;
+    try {
+      // Remove resize event listener
+      window.removeEventListener("resize", this.handleResize);
+      // Clear any existing resize timer
+      if (this.resizeTimer) {
+        window.clearTimeout(this.resizeTimer);
+        this.resizeTimer = null;
+      }
+
+      const { cameraEnhancer, cameraView } = this.resources;
+
+      const configContainer = getElement(this.config.container);
+      configContainer.style.display = hideContainer ? "none" : "block";
+
+      if (cameraView?.getUIElement().parentElement) {
+        configContainer.removeChild(cameraView.getUIElement());
+      }
+
+      cameraEnhancer.close();
+      this.stopCapturing();
+    } catch (ex: any) {
+      let errMsg = ex?.message || ex;
+      console.error(`Close Camera error: ${errMsg}`);
     }
-
-    const { cameraEnhancer, cameraView } = this.resources;
-
-    const configContainer = getElement(this.config.container);
-    configContainer.style.display = hideContainer ? "none" : "block";
-
-    if (cameraView.getUIElement().parentElement) {
-      configContainer.removeChild(cameraView.getUIElement());
-    }
-
-    cameraEnhancer.close();
-    this.stopCapturing();
   }
 
   pauseCamera() {
@@ -783,6 +788,7 @@ export default class MRZScannerView {
             message: "Success",
           },
           originalImageResult: this.originalImageData,
+          _imageData: this.originalImageData,
           data: processedData,
         };
 
