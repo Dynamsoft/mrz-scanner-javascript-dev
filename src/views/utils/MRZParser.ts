@@ -1,6 +1,7 @@
 import { EnumValidationStatus, ParsedResultItem } from "dynamsoft-code-parser";
 import { OriginalImageResultItem } from "dynamsoft-core";
 import { EnumMRZDocumentType, ResultStatus } from "./types";
+import { capitalize } from ".";
 
 // TODO change to EnumMRZDataFields
 export enum EnumMRZData {
@@ -26,7 +27,7 @@ export interface MRZResult {
 
 export interface MRZData {
   [EnumMRZData.InvalidFields]?: EnumMRZData[];
-  [EnumMRZData.DocumentType]: EnumMRZDocumentType;
+  [EnumMRZData.DocumentType]: string;
   [EnumMRZData.DocumentNumber]: string;
   [EnumMRZData.MRZText]: string;
   [EnumMRZData.FirstName]: string;
@@ -113,7 +114,7 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
 
   // Document Type and Name
   const codeType = parsedResult.codeType;
-  const documentType = mapDocumentType(codeType);
+  const documentType = capitalize(mapDocumentType(codeType));
   // TODO Instead of Passport for TD3, check for visa..
   const documentNumberField =
     documentType === EnumMRZDocumentType.Passport && codeType !== "MRTD_TD3_VISA" ? "passportNumber" : "documentNumber";
@@ -150,7 +151,7 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
     [EnumMRZData.DocumentNumber]:
       parsedResult.getFieldValue(documentNumberField) || parsedResult.getFieldValue("longDocumentNumber"),
     [EnumMRZData.IssuingState]: parsedResult.getFieldRawValue("issuingState"),
-    [EnumMRZData.Sex]: parsedResult.getFieldValue("sex"),
+    [EnumMRZData.Sex]: capitalize(parsedResult.getFieldValue("sex")),
   };
 
   Object.keys(fields).forEach((key) => {

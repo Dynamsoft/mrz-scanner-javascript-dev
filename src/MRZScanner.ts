@@ -63,7 +63,7 @@ class MRZScanner {
   private loadingScreen: ReturnType<typeof showLoadingScreen> | null = null;
 
   private showLoadingOverlay(message?: string) {
-    const configContainer = getElement(this.config.container);
+    const configContainer = getElement(this.config.scannerViewConfig.container);
     this.loadingScreen = showLoadingScreen(configContainer, { message });
     configContainer.style.display = "block";
     configContainer.style.position = "relative";
@@ -180,7 +180,6 @@ class MRZScanner {
     const container = document.createElement("div");
     container.className = "mrz-scanner-main-container";
     Object.assign(container.style, {
-      display: "none",
       height: DEFAULT_CONTAINER_HEIGHT,
       width: "100%",
       /* Adding the following CSS rules to make sure the "default" container appears on top and over other elements. */

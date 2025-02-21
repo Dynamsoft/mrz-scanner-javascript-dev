@@ -151,6 +151,11 @@ export function checkOrientation() {
   return window.matchMedia("(orientation: portrait)").matches ? "portrait" : "landscape";
 }
 
+export function capitalize(string: String) {
+  if (!string) return "";
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 export const STANDARD_RESOLUTIONS = {
   "4k": { width: 3840, height: 2160 },
   "2k": { width: 2560, height: 1440 },
