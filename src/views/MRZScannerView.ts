@@ -504,6 +504,7 @@ export default class MRZScannerView {
           message: "Success",
         },
         originalImageResult: this.originalImageData,
+        _imageData: this.originalImageData,
         data: processedData,
       };
       // Emit result through shared resources
