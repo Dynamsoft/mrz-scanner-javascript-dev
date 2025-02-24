@@ -136,7 +136,7 @@ export default class MRZScannerView {
         fillStyle: "transparent",
         lineWidth: 0,
       });
-      cameraView.setVideoFit("contain");
+      cameraView.setVideoFit("cover");
 
       // Set cameraEnhancer as input for CaptureVisionRouter
       cvRouter.setInput(cameraEnhancer);
@@ -317,15 +317,20 @@ export default class MRZScannerView {
         const resHeight = option.getAttribute("data-height");
         const resWidth = option.getAttribute("data-width");
         if (deviceId) {
-          await this.resources.cameraEnhancer.selectCamera(deviceId);
-        } else if (resHeight && resWidth) {
-          await this.resources.cameraEnhancer.setResolution({
-            width: parseInt(resWidth),
-            height: parseInt(resHeight),
+          this.resources.cameraEnhancer.selectCamera(deviceId).then(() => {
+            this.toggleScanGuide();
           });
+        } else if (resHeight && resWidth) {
+          this.resources.cameraEnhancer
+            .setResolution({
+              width: parseInt(resWidth),
+              height: parseInt(resHeight),
+            })
+            .then(() => {
+              this.toggleScanGuide();
+            });
         }
 
-        this.toggleScanGuide();
         if (settingsContainer.style.display !== "none") {
           this.toggleSelectCameraBox();
         }
@@ -550,37 +555,38 @@ export default class MRZScannerView {
 
     // Get visible region of video
     const visibleRegion = cameraView.getVisibleRegionOfVideo({ inPixels: true });
+
     if (!visibleRegion) return;
-    const effectiveWidth = visibleRegion.width;
-    const effectiveHeight = visibleRegion.height;
+
+    // Get the total video dimensions
+    const video = cameraView.getVideoElement();
+    const totalWidth = video.videoWidth;
+    const totalHeight = video.videoHeight;
 
     // Get the document ratio for the specific document type
     const targetRatio = MRZScanGuideRatios[documentType];
 
     // Calculate the base unit to scale the document dimensions
-    // This determines how many pixels one unit of document measurement equals
     let baseUnit: number;
 
     // Calculate bottom margin of 5rem in pixels (assuming 16px per rem)
     const bottomMarginPx = 5 * 16;
-    const effectiveHeightWithMargin = effectiveHeight - bottomMarginPx;
+    const effectiveHeightWithMargin = visibleRegion.height - bottomMarginPx;
 
-    if (effectiveWidth > effectiveHeight) {
+    if (visibleRegion.width > visibleRegion.height) {
       // Landscape orientation
-      // Use 75% of adjusted height as our reference to determine base unit
       const availableHeight = effectiveHeightWithMargin * 0.75;
       baseUnit = availableHeight / targetRatio.height;
 
       // Check if width would exceed bounds
       const resultingWidth = baseUnit * targetRatio.width;
-      if (resultingWidth > effectiveWidth * 0.9) {
+      if (resultingWidth > visibleRegion.width * 0.9) {
         // If too wide, recalculate using width as reference
-        baseUnit = (effectiveWidth * 0.9) / targetRatio.width;
+        baseUnit = (visibleRegion.width * 0.9) / targetRatio.width;
       }
     } else {
       // Portrait orientation
-      // Use 90% of width as our reference to determine base unit
-      const availableWidth = effectiveWidth * 0.9;
+      const availableWidth = visibleRegion.width * 0.9;
       baseUnit = availableWidth / targetRatio.width;
 
       // Check if height would exceed bounds
@@ -595,16 +601,26 @@ export default class MRZScannerView {
     const actualWidth = baseUnit * targetRatio.width;
     const actualHeight = baseUnit * targetRatio.height;
 
-    // Calculate the offsets to center the region horizontally
-    // For vertical positioning, shift up by half the bottom margin
-    const leftOffset = (effectiveWidth - actualWidth) / 2;
+    // Calculate the offsets to center the region horizontally and vertically
+    const leftOffset = (visibleRegion.width - actualWidth) / 2;
     const topOffset = (effectiveHeightWithMargin - actualHeight) / 2;
 
-    // Convert to percentages of the visible area
-    const left = (leftOffset / effectiveWidth) * 100;
-    const right = ((leftOffset + actualWidth) / effectiveWidth) * 100;
-    const top = (topOffset / effectiveHeight) * 100;
-    const bottom = ((topOffset + actualHeight) / effectiveHeight) * 100;
+    // Calculate pixel coordinates of the scan region relative to the visible region
+    const scanLeft = leftOffset;
+    const scanRight = leftOffset + actualWidth;
+    const scanTop = topOffset;
+    const scanBottom = topOffset + actualHeight;
+
+    // Convert to percentages relative to the TOTAL video size, considering the visible region offset
+    const absoluteLeft = visibleRegion.x + scanLeft;
+    const absoluteRight = visibleRegion.x + scanRight;
+    const absoluteTop = visibleRegion.y + scanTop;
+    const absoluteBottom = visibleRegion.y + scanBottom;
+
+    const left = (absoluteLeft / totalWidth) * 100;
+    const right = (absoluteRight / totalWidth) * 100;
+    const top = (absoluteTop / totalHeight) * 100;
+    const bottom = (absoluteBottom / totalHeight) * 100;
 
     // Apply scan region
     const region = {

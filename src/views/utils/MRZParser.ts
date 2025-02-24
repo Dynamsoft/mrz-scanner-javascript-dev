@@ -123,7 +123,6 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
   const documentType = mapDocumentType(codeType);
   // TODO Instead of Passport for TD3, check for visa..
 
-  console.log(documentType, documentType === EnumMRZDocumentType.Passport && codeType === "MRTD_TD3_PASSPORT");
   const documentNumberField =
     documentType === EnumMRZDocumentType.Passport && codeType === "MRTD_TD3_PASSPORT"
       ? "passportNumber"
