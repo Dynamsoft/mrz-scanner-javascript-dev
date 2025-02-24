@@ -68,11 +68,7 @@ function calculateAge(birthDate: MRZDate): number {
   const hasBirthdayOccurred =
     now.getMonth() + 1 > birthDate.month || (now.getMonth() + 1 === birthDate.month && now.getDate() >= birthDate.day);
 
-  const currentYear = new Date().getFullYear();
-  const birthCentury = birthDate.year > currentYear % 100 ? 1900 : 2000;
-  const birthYearFull = birthCentury + birthDate.year;
-
-  return now.getFullYear() - birthYearFull - (hasBirthdayOccurred ? 0 : 1);
+  return now.getFullYear() - birthDate.year - (hasBirthdayOccurred ? 0 : 1);
 }
 
 function parseMRZDate(year: string, month: string, day: string, isExpiry: boolean = false): MRZDate {
