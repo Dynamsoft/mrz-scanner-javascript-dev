@@ -1,27 +1,26 @@
-import MRZScanner, { SharedResources } from "../MRZScanner";
-import MRZScannerView from "./MRZScannerView";
-import { NormalizedImageResultItem, OriginalImageResultItem } from "dynamsoft-capture-vision-bundle";
-import { createControls, createStyle, getElement, isEmptyObject } from "./utils";
 import { EnumResultStatus, ToolbarButton, ToolbarButtonConfig } from "./utils/types";
 import { displayMRZDate, EnumMRZData, MRZData, MRZDataLabel, MRZDate, MRZResult } from "./utils/MRZParser";
 import { MRZScanner_ICONS } from "./utils/icons";
+import { createControls, createStyle, getElement, isEmptyObject } from "./utils";
+import MRZScannerView from "./MRZScannerView";
+import { SharedResources } from "../MRZScanner";
 
 export interface MRZResultViewToolbarButtonsConfig {
   retake?: ToolbarButtonConfig;
-
   done?: ToolbarButtonConfig;
 }
 
 export interface MRZResultViewConfig {
   container?: HTMLElement | string;
   toolbarButtonsConfig?: MRZResultViewToolbarButtonsConfig;
-
   showOriginalImage?: boolean;
+  allowResultEditing?: boolean; // New option to control if result fields can be edited
   onDone?: (result: MRZResult) => Promise<void>;
 }
 
 export default class MRZResultView {
   private currentScanResultViewResolver?: (result: MRZResult) => void;
+  private editedFields: Partial<MRZData> = {};
 
   constructor(
     private resources: SharedResources,
@@ -49,7 +48,7 @@ export default class MRZResultView {
   private async handleRetake() {
     try {
       if (!this.scannerView) {
-        console.error("Correction View not initialized");
+        console.error("Scanner View not initialized");
         return;
       }
 
@@ -92,6 +91,18 @@ export default class MRZResultView {
 
   private async handleDone() {
     try {
+      // Apply edited fields to the result
+      if (this.resources.result?.data && !isEmptyObject(this.editedFields)) {
+        this.resources.result.data = {
+          ...this.resources.result.data,
+          ...this.editedFields,
+        };
+
+        if (this.resources.onResultUpdated) {
+          this.resources.onResultUpdated(this.resources.result);
+        }
+      }
+
       if (this.config?.onDone) {
         await this.config.onDone(this.resources.result);
       }
@@ -132,7 +143,6 @@ export default class MRZResultView {
         isHidden: toolbarButtonsConfig?.retake?.isHidden || false,
         isDisabled: !this.scannerView,
       },
-
       {
         id: `dynamsoft-mrz-scanResult-done`,
         icon: toolbarButtonsConfig?.done?.icon || MRZScanner_ICONS.complete,
@@ -146,42 +156,140 @@ export default class MRZResultView {
     return createControls(buttons);
   }
 
+  private handleFieldEdit(key: string, value: any) {
+    // For date fields, we need special handling
+    if (key === EnumMRZData.DateOfBirth || key === EnumMRZData.DateOfExpiry) {
+      try {
+        const [day, month, year] = value.split(/[\/\-\.]/);
+        if (day && month && year) {
+          this.editedFields[key] = {
+            day: parseInt(day, 10),
+            month: parseInt(month, 10),
+            year: parseInt(year, 10),
+          } as MRZDate;
+        }
+      } catch (e) {
+        console.error("Error parsing date", e);
+      }
+    } else {
+      (this.editedFields as any)[key] = value;
+    }
+  }
+
   private createMRZDataDisplay() {
     const mrzData = this.resources.result?.data || ({} as MRZData);
+    const isEditingAllowed = !!this.config.allowResultEditing;
+    const invalidFields = mrzData.invalidFields || [];
 
     const resultContainer = document.createElement("div");
     resultContainer.className = "dynamsoft-mrz-data-container";
 
     if (!isEmptyObject(mrzData)) {
+      // If there are invalid fields and editing is allowed, add a notification
+      if (invalidFields.length > 0 && isEditingAllowed) {
+        const errorNotification = document.createElement("div");
+        errorNotification.className = "dynamsoft-mrz-error-notification";
+        errorNotification.innerHTML = `
+          <div class="dynamsoft-mrz-error-icon">${MRZScanner_ICONS.failed}</div>
+          <div class="dynamsoft-mrz-error-message">
+            Some fields require correction. Please review highlighted fields.
+          </div>
+        `;
+        resultContainer.appendChild(errorNotification);
+      }
+
       Object.entries(mrzData).forEach(([key, value]) => {
         if (key === EnumMRZData.InvalidFields || !value) {
-          // Dont post invalid fields
+          // Don't display invalidFields array
           return;
         }
 
         const result = document.createElement("div");
         result.className = "dynamsoft-mrz-data-row";
 
-        const resultLabel = document.createElement("span");
-        resultLabel.className = "dynamsoft-mrz-data-label";
-        resultLabel.innerText = MRZDataLabel[key as EnumMRZData];
-
-        // add validation marker for invalid fields
-        if (mrzData.invalidFields?.includes(key as EnumMRZData)) {
-          const invalidIcon = document.createElement("span");
-          invalidIcon.innerHTML = MRZScanner_ICONS.failed;
-          resultLabel.appendChild(invalidIcon);
+        // Add special class for invalid fields that need attention
+        const isInvalid = invalidFields.includes(key as EnumMRZData);
+        if (isInvalid) {
+          result.classList.add("invalid-field");
         }
 
-        const resultValue = document.createElement("span");
+        const resultLabel = document.createElement("span");
+        resultLabel.className = "dynamsoft-mrz-data-label";
+        resultLabel.innerText = MRZDataLabel[key as EnumMRZData] || key;
+
+        // Add validation marker for invalid fields
+        if (isInvalid) {
+          const invalidIcon = document.createElement("span");
+          invalidIcon.className = "dynamsoft-mrz-error-icon";
+          invalidIcon.innerHTML = MRZScanner_ICONS.failed;
+          resultLabel.appendChild(invalidIcon);
+
+          if (isEditingAllowed) {
+            const errorHint = document.createElement("span");
+            errorHint.className = "dynamsoft-mrz-error-hint";
+            errorHint.textContent = "Please correct this field";
+            resultLabel.appendChild(errorHint);
+          }
+        }
+
+        const resultValue = document.createElement("div");
         resultValue.className = "dynamsoft-mrz-data-value";
-        if (key === EnumMRZData.DateOfBirth || key === EnumMRZData.DateOfExpiry) {
-          resultValue.innerText = displayMRZDate(value as MRZDate);
-        } else if (key === EnumMRZData.MRZText) {
-          resultValue.classList.add("code");
-          resultValue.innerText = value as string;
+
+        // Make editable only if editing is allowed and it's not mrzText
+        if (isEditingAllowed && key !== EnumMRZData.MRZText) {
+          const inputField = document.createElement("input");
+          inputField.className = "dynamsoft-mrz-data-input";
+
+          // Add special class for invalid fields
+          if (isInvalid) {
+            inputField.classList.add("invalid");
+          }
+
+          if (key === EnumMRZData.DateOfBirth || key === EnumMRZData.DateOfExpiry) {
+            inputField.value = displayMRZDate(value as MRZDate);
+            inputField.setAttribute("placeholder", "DD/MM/YYYY");
+          } else {
+            inputField.value = value as string;
+          }
+
+          inputField.addEventListener("input", (e) => {
+            this.handleFieldEdit(key, (e.target as HTMLInputElement).value);
+
+            // Remove invalid styling when user starts editing
+            if (isInvalid) {
+              inputField.classList.remove("invalid");
+              result.classList.remove("invalid-field");
+
+              // Also remove the field from the invalidFields array in editedFields
+              if (!this.editedFields.invalidFields) {
+                // Copy the original invalidFields array
+                this.editedFields.invalidFields = [...invalidFields];
+              }
+
+              // Remove this field from the invalidFields array
+              const index = this.editedFields.invalidFields.indexOf(key as EnumMRZData);
+              if (index > -1) {
+                this.editedFields.invalidFields.splice(index, 1);
+              }
+            }
+          });
+
+          resultValue.appendChild(inputField);
         } else {
-          resultValue.innerText = value as string;
+          // For read-only or MRZ text, display as text
+          if (key === EnumMRZData.MRZText) {
+            resultValue.classList.add("code");
+            resultValue.innerText = value as string;
+          } else if (key === EnumMRZData.DateOfBirth || key === EnumMRZData.DateOfExpiry) {
+            resultValue.innerText = displayMRZDate(value as MRZDate);
+          } else {
+            resultValue.innerText = value as string;
+          }
+
+          // Add special class for invalid fields
+          if (isInvalid) {
+            resultValue.classList.add("invalid-value");
+          }
         }
 
         result.appendChild(resultLabel);
@@ -299,6 +407,13 @@ const DEFAULT_RESULT_VIEW_STYLE = `
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.dynamsoft-mrz-data-row.invalid-field {
+  background-color: rgba(231, 76, 60, 0.1);
+  border-left: 3px solid #e74c3c;
+  padding-left: calc(2rem - 3px);
 }
 
 .dynamsoft-mrz-data-label {
@@ -306,12 +421,41 @@ const DEFAULT_RESULT_VIEW_STYLE = `
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .dynamsoft-mrz-data-label span {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.dynamsoft-mrz-error-notification {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: white;
+  padding: 1rem;
+  margin: 0.5rem 2rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dynamsoft-mrz-error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e74c3c;
+}
+
+.dynamsoft-mrz-error-message {
+  flex: 1;
+}
+
+.dynamsoft-mrz-error-hint {
+  font-size: 0.8rem;
+  color: #e74c3c;
+  margin-left: 0.5rem;
 }
 
 .dynamsoft-mrz-data-value {
@@ -321,5 +465,32 @@ const DEFAULT_RESULT_VIEW_STYLE = `
 .dynamsoft-mrz-data-value.code {
   font-family: monospace;
 }
-.
+
+.dynamsoft-mrz-data-value.invalid-value {
+  color: #e74c3c;
+  text-decoration: wavy underline #e74c3c;
+  text-decoration-skip-ink: none;
+}
+
+.dynamsoft-mrz-data-input {
+  width: 100%;
+  padding: 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.dynamsoft-mrz-data-input.invalid {
+  background-color: rgba(231, 76, 60, 0.1);
+  border-color: #e74c3c;
+}
+
+.dynamsoft-mrz-data-input:focus {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: #fe8e14;
+  outline: none;
+}
 `;

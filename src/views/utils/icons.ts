@@ -24,7 +24,20 @@ export const MRZScanner_ICONS = {
 </g>
 </svg>
 `,
-  failed: `<svg class="w-4 h-4" viewBox="0 0 20 20" width="20" height="20" fill="#ef4444">
-  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-</svg>`,
+  failed: `
+  <svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="none"
+  stroke="#ef4444"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6l-12 12" />
+  <path d="M6 6l12 12" />
+</svg>
+`,
 };
