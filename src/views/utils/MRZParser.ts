@@ -59,8 +59,8 @@ export const MRZDataLabel: Partial<Record<EnumMRZData, string>> = {
   [EnumMRZData.Sex]: "Sex",
   [EnumMRZData.IssuingState]: "Issuing State",
   [EnumMRZData.Nationality]: "Nationality",
-  [EnumMRZData.DateOfBirth]: "Date Of Birth (YY/MM/DD)",
-  [EnumMRZData.DateOfExpiry]: "Date Of Expiry (YY/MM/DD)",
+  [EnumMRZData.DateOfBirth]: "Date Of Birth (YYYY-MM-DD)",
+  [EnumMRZData.DateOfExpiry]: "Date Of Expiry (YYYY-MM-DD)",
 };
 
 function calculateAge(birthDate: MRZDate): number {
@@ -75,9 +75,21 @@ function calculateAge(birthDate: MRZDate): number {
   return now.getFullYear() - birthYearFull - (hasBirthdayOccurred ? 0 : 1);
 }
 
-function parseMRZDate(year: string, month: string, day: string, future: boolean = false): MRZDate {
+function parseMRZDate(year: string, month: string, day: string, isExpiry: boolean = false): MRZDate {
+  const intYear = parseInt(year, 10);
+  let fullYear: number;
+
+  if (isExpiry) {
+    // For expiry dates - use fixed cutoff at 60
+    fullYear = intYear >= 60 ? 1900 + intYear : 2000 + intYear;
+  } else {
+    // For birth dates - compare with current year's last two digits
+    const currentYearLastTwoDigits = new Date().getFullYear() % 100;
+    fullYear = intYear > currentYearLastTwoDigits ? 1900 + intYear : 2000 + intYear;
+  }
+
   return {
-    year: parseInt(year, 10),
+    year: fullYear,
     month: parseInt(month, 10),
     day: parseInt(day, 10),
   };
@@ -85,7 +97,7 @@ function parseMRZDate(year: string, month: string, day: string, future: boolean 
 
 export function displayMRZDate(date: MRZDate) {
   const twoDigit = (num: number) => (`${num}`?.length === 1 ? `0${num}` : num);
-  return `${twoDigit(date?.year)} / ${twoDigit(date?.month)}${date?.day && ` / ${twoDigit(date?.day)}`}`;
+  return `${date?.year}-${twoDigit(date?.month)}${date?.day && `-${twoDigit(date?.day)}`}`;
 }
 
 // Reference: https://www.dynamsoft.com/code-parser/docs/core/code-types/mrtd.html?lang=javascript
@@ -138,7 +150,8 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
   const dateOfExpiry = parseMRZDate(
     parsedResult.getFieldValue("expiryYear"),
     parsedResult.getFieldValue("expiryMonth"),
-    parsedResult.getFieldValue("expiryDay")
+    parsedResult.getFieldValue("expiryDay"),
+    true
   );
 
   ["birthYear", "birthMonth", "birthDay"].forEach((dateFields) => {
