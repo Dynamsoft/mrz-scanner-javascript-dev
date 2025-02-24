@@ -166,7 +166,14 @@ class MRZScanner {
       this.resources.cvRouter = await CaptureVisionRouter.createInstance();
     } catch (ex: any) {
       let errMsg = ex?.message || ex;
-      throw new Error(`Resource Initialization Failed: ${errMsg}`);
+
+      if (errMsg?.toLowerCase().includes("license")) {
+        throw new Error(
+          `The MRZ Scanner license is invalid or has expired. Please contact the site administrator to resolve this issue.`
+        );
+      } else {
+        throw new Error(`Resource Initialization Failed: ${errMsg}`);
+      }
     }
   }
 
