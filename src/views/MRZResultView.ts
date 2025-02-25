@@ -160,7 +160,7 @@ export default class MRZResultView {
     // For date fields, we need special handling
     if (key === EnumMRZData.DateOfBirth || key === EnumMRZData.DateOfExpiry) {
       try {
-        const [day, month, year] = value.split(/[\/\-\.]/);
+        const [year, month, day] = value.split(/[\/\-\.]/);
         if (day && month && year) {
           this.editedFields[key] = {
             day: parseInt(day, 10),
@@ -196,6 +196,16 @@ export default class MRZResultView {
           </div>
         `;
         resultContainer.appendChild(errorNotification);
+      } else if (invalidFields.length === 0 && isEditingAllowed) {
+        const infoNotification = document.createElement("div");
+        infoNotification.className = "dynamsoft-mrz-info-notification";
+        infoNotification.innerHTML = `
+          <div class="dynamsoft-mrz-info-icon">${MRZScanner_ICONS.info}</div>
+          <div class="dynamsoft-mrz-info-message">
+            Please review all fields to ensure each information is correct.
+          </div>
+        `;
+        resultContainer.appendChild(infoNotification);
       }
 
       Object.entries(mrzData).forEach(([key, value]) => {
@@ -247,7 +257,7 @@ export default class MRZResultView {
 
           if (key === EnumMRZData.DateOfBirth || key === EnumMRZData.DateOfExpiry) {
             inputField.value = displayMRZDate(value as MRZDate);
-            inputField.setAttribute("placeholder", "DD/MM/YYYY");
+            inputField.setAttribute("placeholder", "YYYY-MM-DD");
           } else {
             inputField.value = value as string;
           }
@@ -441,6 +451,17 @@ const DEFAULT_RESULT_VIEW_STYLE = `
   gap: 1rem;
 }
 
+.dynamsoft-mrz-info-notification {
+  background-color: rgba(196, 231, 60, 0.2);
+  color: white;
+  padding: 1rem;
+  margin: 0.5rem 2rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .dynamsoft-mrz-error-icon {
   display: flex;
   align-items: center;
@@ -448,6 +469,14 @@ const DEFAULT_RESULT_VIEW_STYLE = `
   color: #e74c3c;
 }
 
+.dynamsoft-mrz-info-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.dynamsoft-mrz-info-message,
 .dynamsoft-mrz-error-message {
   flex: 1;
 }
