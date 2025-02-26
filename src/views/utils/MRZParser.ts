@@ -134,7 +134,7 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
   const documentNumberField =
     documentType === EnumMRZDocumentType.Passport && codeType === "MRTD_TD3_PASSPORT"
       ? "passportNumber"
-      : "documentCode";
+      : "documentNumber";
 
   // Date
   const dateOfBirth = parseMRZDate(
