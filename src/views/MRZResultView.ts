@@ -245,8 +245,10 @@ export default class MRZResultView {
         const resultValue = document.createElement("div");
         resultValue.className = "dynamsoft-mrz-data-value";
 
+        const nonEditableFields = [EnumMRZData.MRZText, EnumMRZData.DocumentType];
+
         // Make editable only if editing is allowed and it's not mrzText
-        if (isEditingAllowed && key !== EnumMRZData.MRZText) {
+        if (isEditingAllowed && !nonEditableFields.includes(key as EnumMRZData)) {
           const inputField = document.createElement("input");
           inputField.className = "dynamsoft-mrz-data-input";
 

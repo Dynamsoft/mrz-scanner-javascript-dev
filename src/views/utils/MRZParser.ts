@@ -115,6 +115,27 @@ function mapDocumentType(codeType: string): EnumMRZDocumentType {
       throw new Error(`Unknown document type: ${codeType}`);
   }
 }
+function documentTypeLabel(codeType: string): string {
+  switch (codeType) {
+    case "MRTD_TD1_ID":
+      return "ID (TD1)";
+
+    case "MRTD_TD2_ID":
+      return "ID (TD2)";
+    case "MRTD_TD2_VISA":
+      return "ID (VISA)";
+    case "MRTD_TD2_FRENCH_ID":
+      return "French ID (TD2)";
+
+    case "MRTD_TD3_PASSPORT":
+      return "Passport (TD3)";
+    case "MRTD_TD3_VISA":
+      return "Visa (TD3)";
+
+    default:
+      throw new Error(`Unknown document type: ${codeType}`);
+  }
+}
 
 export function processMRZData(mrzText: string, parsedResult: ParsedResultItem): MRZData | null {
   const invalidFields: EnumMRZData[] = [];
@@ -129,6 +150,7 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
   // Document Type and Name
   const codeType = parsedResult.codeType;
   const documentType = mapDocumentType(codeType);
+  const docTypeLabel = documentTypeLabel(codeType);
   // TODO Instead of Passport for TD3, check for visa..
 
   const documentNumberField =
@@ -200,7 +222,7 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
   const mrzData: MRZData = {
     [EnumMRZData.InvalidFields]: invalidFields,
     [EnumMRZData.MRZText]: mrzText,
-    [EnumMRZData.DocumentType]: capitalize(documentType),
+    [EnumMRZData.DocumentType]: capitalize(docTypeLabel),
     [EnumMRZData.Age]: age,
     ...fields,
     [EnumMRZData.DateOfBirth]: dateOfBirth,
