@@ -904,11 +904,11 @@ export default class MRZScannerView {
         newSettings.roi.points = [
           {
             x: 0,
-            y: 66,
+            y: 50,
           },
           {
             x: 100,
-            y: 66,
+            y: 50,
           },
           {
             x: 100,

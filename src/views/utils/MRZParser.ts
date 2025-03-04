@@ -48,8 +48,9 @@ export interface MRZDate {
   day: number;
 }
 
-export const MRZDataLabel: Partial<Record<EnumMRZData, string>> = {
+export const MRZDataLabel: Record<EnumMRZData, string> = {
   // Not showing Invalid Fields
+  [EnumMRZData.InvalidFields]: "Invalid Fields",
   [EnumMRZData.DocumentType]: "Document Type",
   [EnumMRZData.DocumentNumber]: "Document Number",
   [EnumMRZData.MRZText]: "MRZ Text",

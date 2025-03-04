@@ -396,12 +396,12 @@ class MRZScanner {
       // If no additional views, return current result
       return this.resources.result;
     } catch (error) {
-      alert(`MRZ Scanner failed: ${error?.message || error}`);
-      console.error("MRZ Scanner failed:", error?.message || error);
+      alert(error?.message || error);
+      console.error(error?.message || error);
       return {
         status: {
           code: EnumResultStatus.RS_FAILED,
-          message: `MRZ Scanner failed. ${error?.message || error}`,
+          message: error?.message || error,
         },
       };
     } finally {

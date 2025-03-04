@@ -223,9 +223,18 @@ export default class MRZResultView {
           result.classList.add("invalid-field");
         }
 
+        const nonEditableFields = [EnumMRZData.MRZText, EnumMRZData.DocumentType];
+
         const resultLabel = document.createElement("span");
         resultLabel.className = "dynamsoft-mrz-data-label";
         resultLabel.innerText = MRZDataLabel[key as EnumMRZData] || key;
+
+        if (isEditingAllowed && !nonEditableFields.includes(key as EnumMRZData)) {
+          const editIcon = document.createElement("span");
+          editIcon.className = "dynamsoft-mrz-edit-icon";
+          editIcon.innerHTML = MRZScanner_ICONS.edit;
+          resultLabel.appendChild(editIcon);
+        }
 
         // Add validation marker for invalid fields
         if (isInvalid) {
@@ -244,8 +253,6 @@ export default class MRZResultView {
 
         const resultValue = document.createElement("div");
         resultValue.className = "dynamsoft-mrz-data-value";
-
-        const nonEditableFields = [EnumMRZData.MRZText, EnumMRZData.DocumentType];
 
         // Make editable only if editing is allowed and it's not mrzText
         if (isEditingAllowed && !nonEditableFields.includes(key as EnumMRZData)) {
@@ -322,8 +329,6 @@ export default class MRZResultView {
 
   async initialize(): Promise<void> {
     try {
-      createStyle("dynamsoft-mrz-result-view-style", DEFAULT_RESULT_VIEW_STYLE);
-
       if (!this.resources.result) {
         throw Error("Captured image is missing. Please capture an image first!");
       }
@@ -332,30 +337,17 @@ export default class MRZResultView {
         throw new Error("Please create a Scan Result View Container element");
       }
 
+      createStyle("dynamsoft-mrz-result-view-style", DEFAULT_RESULT_VIEW_STYLE);
+
       // Create a wrapper div that preserves container dimensions
       const resultViewWrapper = document.createElement("div");
-      Object.assign(resultViewWrapper.style, {
-        display: "flex",
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#575757",
-        fontSize: "12px",
-        flexDirection: "column",
-        alignItems: "center",
-      });
+      resultViewWrapper.className = "dynamsoft-mrz-result-view-container";
 
       if (this.config.showOriginalImage !== false) {
         const imageResult = this.resources.result.originalImageResult;
         // Create and add scan result view image container
         const scanResultViewImageContainer = document.createElement("div");
-        Object.assign(scanResultViewImageContainer.style, {
-          width: "100%",
-          height: "200px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#323234",
-        });
+        scanResultViewImageContainer.className = "dynamsoft-mrz-result-view-image-container";
 
         // Add scan result image
         let scanResultImg: any;
@@ -403,6 +395,26 @@ export default class MRZResultView {
 }
 
 const DEFAULT_RESULT_VIEW_STYLE = `
+ .dynamsoft-mrz-result-view-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background-color:#575757;
+    font-size: 12px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .dynamsoft-mrz-result-view-image-container {
+      width: 100%;
+          height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+          background-color: #323234,
+          }
+
+    
 .dynamsoft-mrz-data-container {
   font-size: 16px;
   font-family: Verdana;
@@ -464,6 +476,13 @@ const DEFAULT_RESULT_VIEW_STYLE = `
   gap: 1rem;
 }
 
+.dynamsoft-mrz-edit-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+}
+
 .dynamsoft-mrz-error-icon {
   display: flex;
   align-items: center;
@@ -486,11 +505,11 @@ const DEFAULT_RESULT_VIEW_STYLE = `
 .dynamsoft-mrz-error-hint {
   font-size: 0.8rem;
   color: #e74c3c;
-  margin-left: 0.5rem;
 }
 
 .dynamsoft-mrz-data-value {
   word-wrap: break-word;
+  text-align: start;
 }
 
 .dynamsoft-mrz-data-value.code {
@@ -524,4 +543,28 @@ const DEFAULT_RESULT_VIEW_STYLE = `
   border-color: #fe8e14;
   outline: none;
 }
+    @media (orientation: landscape) and (max-width: 1024px) {
+    .dynamsoft-mrz-result-view-container {
+      flex-direction: row;
+    }
+
+    .dynamsoft-mrz-result-view-image-container{
+      flex: 1;
+      height: 100%;
+    }
+
+    .dynamsoft-mrz-data-container{
+      flex: 1;
+    }
+
+    .dynamsoft-mrz-data-row:first-of-type    {
+    padding-top: 2rem;
+}
+
+.dynamsoft-mrz-data-row:last-of-type {
+padding-bottom: 2rem;
+}
+
+  }
+
 `;
