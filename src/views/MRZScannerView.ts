@@ -22,7 +22,7 @@ export interface MRZScannerViewConfig {
   showFormatSelector?: boolean;
   showSoundToggle?: boolean;
 
-  enableMultiFrameCrossFilter?: boolean; // false by default
+  enableMultiFrameCrossFilter?: boolean; // true by default
 }
 
 const MRZScanGuideRatios: Record<EnumMRZDocumentType, { width: number; height: number }> = {

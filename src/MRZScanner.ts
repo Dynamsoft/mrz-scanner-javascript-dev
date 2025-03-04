@@ -132,7 +132,7 @@ class MRZScanner {
 
       this.isInitialized = true;
 
-      this.hideLoadingOverlay();
+      this.hideLoadingOverlay(true);
 
       return { resources: this.resources, components };
     } catch (ex: any) {
@@ -267,6 +267,7 @@ class MRZScanner {
       cameraEnhancerUIPath: this.config.scannerViewConfig?.cameraEnhancerUIPath || DEFAULT_DCE_UI_PATH,
       templateFilePath: baseConfig.templateFilePath,
       utilizedTemplateNames: baseConfig.utilizedTemplateNames,
+      enableMultiFrameCrossFilter: this.config.scannerViewConfig?.enableMultiFrameCrossFilter ?? true,
       mrzFormatType: this.config.mrzFormatType,
     };
 
