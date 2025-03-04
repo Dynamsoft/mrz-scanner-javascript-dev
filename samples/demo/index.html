@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dynamsoft MRZ Scanner</title>
+    <link rel="stylesheet" href="./css/index.css" />
+    <script src="../../dist/mrz-scanner.bundle.js"></script>
+  </head>
+
+  <body>
+    <div class="logo">
+      <!-- Logo -->
+      <a class="logo-container" href="https://www.dynamsoft.com" target="_blank">
+        <img class="logo-img" src="./assets/dynamsoftLogo.png" alt="dynamsoft-logo" />
+      </a>
+    </div>
+
+    <div class="header">MRZ Scanner</div>
+
+    <!-- Mobile View -->
+    <div id="mobile-view" class="container">
+      <div class="selection-header">Select a camera to start</div>
+      <div class="camera-selection">
+        <div class="selection-group-container">
+          <div class="selection-group-title live">Live Cameras:</div>
+          <div class="live-camera-options">
+            <div class="camera-option">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="start-button" id="start-scan">Start Scan with Live Camera</button>
+    </div>
+
+    <!-- Desktop View (initially hidden) -->
+    <div id="desktop-view" class="container" style="display: none">
+      <div class="description">
+        Dynamsoft MRZ Scanner recognizes the Machine-Readable Zone (MRZ) on a passport or ID card and converts the
+        encoded strings into human-readable fields
+      </div>
+
+      <div class="qr-container">
+        <div>Scan to Open on Mobile</div>
+        <img
+          src="./assets/mrz-scanner-qr-code.svg"
+          alt="https://demo.dynamsoft.com/solutions/mrz-scanner"
+          class="qr-code"
+        />
+      </div>
+
+      <div class="quick-start">
+        <div class="quick-start-header">
+          <div>Quick Start Options:</div>
+          <button class="desktop-button" id="desktop-proceed">Proceed to Try on Desktop</button>
+        </div>
+        <div class="note">
+          Note: Desktop cameras may have limited performance. Mobile scanning is recommended for best results.
+        </div>
+      </div>
+    </div>
+
+    <!-- Results View (initially hidden) -->
+    <div id="results-view" class="container" style="display: none">
+      <div id="results" class="results"></div>
+      <button class="start-button" id="back-button">Back to Scanner</button>
+    </div>
+
+    <div class="footer">Powered by Dynamsoft</div>
+
+    <script>
+      const mobileView = document.getElementById("mobile-view");
+      const desktopView = document.getElementById("desktop-view");
+      const resultsView = document.getElementById("results-view");
+      const startScanButton = document.getElementById("start-scan");
+      const desktopProceedButton = document.getElementById("desktop-proceed");
+      const backButton = document.getElementById("back-button");
+      const resultContainer = document.getElementById("results");
+
+      // Handle view switching based on device type
+      function detectDeviceAndSetView() {
+        // Check if mobile or desktop based on screen width
+        if (window.innerWidth < 768) {
+          mobileView.style.display = "flex";
+          desktopView.style.display = "none";
+        } else {
+          mobileView.style.display = "none";
+          desktopView.style.display = "flex";
+        }
+      }
+
+      // Call function on page load and window resize
+      window.addEventListener("load", detectDeviceAndSetView);
+      window.addEventListener("resize", detectDeviceAndSetView);
+
+      // Initialize the Dynamsoft MRZ Scanner
+      const mrzscanner = new Dynamsoft.MRZScanner({
+        license: "",
+        scannerViewConfig: {
+          cameraEnhancerUIPath: "../../../dist/mrz-scanner.ui.html",
+        },
+        templateFilePath: "../../../dist/mrz-scanner.template.json",
+      });
+
+      (async () => {
+        const { resources } = await mrzscanner.initialize();
+
+        const liveCameraOptionContainer = document.querySelector(".live-camera-options");
+
+        const liveCameras = await resources.cameraEnhancer.getAllCameras();
+        let firstCam = null;
+        liveCameraOptionContainer.innerText = "";
+        liveCameras.forEach((camera, i) => {
+          const opt = document.createElement("div");
+          opt.className = "camera-option";
+          opt.setAttribute("data-device-id", camera.deviceId);
+          opt.textContent = camera.label;
+          liveCameraOptionContainer.appendChild(opt);
+          if (i === 0) firstCam = opt;
+        });
+
+        const cameraOptions = document.querySelectorAll(".camera-option");
+
+        // Camera selection
+        cameraOptions.forEach((option) => {
+          option.addEventListener("click", function () {
+            // Remove 'selected' class from all options
+            cameraOptions.forEach((opt) => {
+              opt.classList.remove("selected");
+              opt.innerHTML = opt.textContent.replace(" ✓", "");
+            });
+
+            // Add 'selected' class to clicked option
+            this.classList.add("selected");
+            this.innerHTML = this.textContent.replace(" ✓", "") + ' <span class="checkmark">✓</span>';
+
+            // Update button text
+            startScanButton.textContent = "Start Scan with Live Camera";
+          });
+        });
+
+        if (firstCam) {
+          firstCam.click();
+        }
+
+        // Start scan button handler
+        startScanButton.addEventListener("click", async function () {
+          mobileView.style.display = "none";
+          desktopView.style.display = "none";
+
+          try {
+            // Launch the scanner and wait for the result
+            const result = await mrzscanner.launch();
+            console.log(result);
+
+            resultsView.style.display = "flex";
+
+            if (result?.data) {
+              resultContainer.innerHTML = ""; // Clear placeholder content
+
+              if (result.originalImageResult?.toCanvas) {
+                const canvas = result.originalImageResult?.toCanvas();
+
+                canvas.style.objectFit = "contain";
+                canvas.style.width = "100%";
+                canvas.style.height = "100%";
+                resultContainer.appendChild(canvas);
+              }
+
+              let resultHTML = ``;
+              Object.entries(result.data).forEach(([key, value]) => {
+                const label = Dynamsoft.MRZDataLabel[key];
+
+                const container = document.createElement("div");
+                container.className = "mrz-result-container";
+                const labelContainer = document.createElement("div");
+                const valueContainer = document.createElement("div");
+
+                labelContainer.textContent = label;
+                valueContainer.textContent = `${JSON.stringify(value)}`;
+
+                container.appendChild(labelContainer);
+                container.appendChild(valueContainer);
+                resultContainer.appendChild(container);
+              });
+            } else {
+              resultContainer.innerHTML = "<p>No MRZ scanned. Please try again.</p>";
+            }
+          } catch (error) {
+            console.error("Error scanning:", error);
+            resultContainer.innerHTML = "<p>Error occurred during scanning. Please try again.</p>";
+            resultsView.style.display = "flex";
+          }
+        });
+      })();
+
+      // Desktop proceed button handler
+      desktopProceedButton.addEventListener("click", async function () {
+        desktopView.style.display = "none";
+
+        try {
+          // Launch the scanner and wait for the result
+          const result = await mrzscanner.launch();
+          console.log(result);
+
+          resultsView.style.display = "flex";
+
+          if (result?.data) {
+            resultContainer.innerHTML = ""; // Clear placeholder content
+
+            if (result.originalImageResult?.toCanvas) {
+              const canvas = result.originalImageResult?.toCanvas();
+
+              canvas.style.objectFit = "contain";
+              canvas.style.width = "100%";
+              canvas.style.height = "100%";
+              resultContainer.appendChild(canvas);
+            }
+
+            Object.entries(result.data).forEach(([key, value]) => {
+              const label = Dynamsoft.MRZDataLabel[key];
+
+              const container = document.createElement("div");
+              container.className = "mrz-result-container";
+              const labelContainer = document.createElement("div");
+              const valueContainer = document.createElement("div");
+
+              labelContainer.textContent = label;
+              valueContainer.textContent = `${JSON.stringify(value)}`;
+
+              container.appendChild(labelContainer);
+              container.appendChild(valueContainer);
+              resultContainer.appendChild(container);
+            });
+          } else {
+            resultContainer.innerHTML = "<p>No MRZ scanned. Please try again.</p>";
+          }
+        } catch (error) {
+          console.error("Error scanning:", error);
+          resultContainer.innerHTML = "<p>Error occurred during scanning. Please try again.</p>";
+          resultsView.style.display = "flex";
+        }
+      });
+
+      // Back button handler
+      backButton.addEventListener("click", function () {
+        resultsView.style.display = "none";
+        detectDeviceAndSetView(); // Return to appropriate view based on device
+      });
+    </script>
+  </body>
+</html>
