@@ -13,7 +13,7 @@ import {
   UtilizedTemplateNames,
 } from "./views/utils/types";
 import { createStyle, getElement, isEmptyObject } from "./views/utils";
-import MRZScannerView, { MRZScannerViewConfig } from "./views/MRZScannerView";
+import MRZScannerView, { _DEMO_CameraType, MRZScannerViewConfig } from "./views/MRZScannerView";
 import { MRZResult } from "./views/utils/MRZParser";
 import MRZResultView, { MRZResultViewConfig } from "./views/MRZResultView";
 import { DEFAULT_LOADING_SCREEN_STYLE, showLoadingScreen } from "./views/utils/LoadingScreen";
@@ -441,12 +441,21 @@ class MRZScanner {
     this.isInitialized = false;
   }
 
-  async launch(): Promise<MRZResult> {
-    if (this.isCapturing) {
-      throw new Error("Capture session already in progress");
-    }
-
+  async launch(_demo_cameraType?: _DEMO_CameraType): Promise<MRZResult> {
     try {
+      if (this.isCapturing) {
+        const error = `Capture session already in progress`;
+
+        alert(error);
+        console.error(error);
+        return {
+          status: {
+            code: EnumResultStatus.RS_FAILED,
+            message: error,
+          },
+        };
+      }
+
       this.isCapturing = true;
       const { components } = await this.initialize();
 
@@ -465,12 +474,12 @@ class MRZScanner {
 
       // Scanner view is required if no existing result
       if (!components.scannerView && !this.resources.result) {
-        throw new Error("Scanner view is required when no previous result exists");
+        throw Error(`Scanner view is required when no previous result exists`);
       }
 
       // Main Flow
       if (components.scannerView) {
-        const scanResult = await components.scannerView.launch();
+        const scanResult = await components.scannerView.launch(_demo_cameraType);
 
         if (scanResult?.status.code !== EnumResultStatus.RS_SUCCESS) {
           return {

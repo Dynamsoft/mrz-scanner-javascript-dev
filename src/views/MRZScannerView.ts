@@ -9,6 +9,26 @@ import { ParsedResultItem } from "dynamsoft-code-parser";
 import { Feedback } from "dynamsoft-camera-enhancer";
 import { MultiFrameResultCrossFilter } from "dynamsoft-utility";
 
+enum _DEMO_VIRTUAL_CAMERA_LIST {
+  VIRTUAL_PASSPORT = "virtual1",
+  VIRTUAL_TD1 = "virtual2",
+  VIRTUAL_TD2 = "virtual3",
+  PHYSICAL_CAMERA = "camera",
+}
+
+export type _DEMO_CameraType = _DEMO_VIRTUAL_CAMERA_LIST;
+
+export type _DEMO_OnlyVirtualCameraType =
+  | _DEMO_VIRTUAL_CAMERA_LIST.VIRTUAL_PASSPORT
+  | _DEMO_VIRTUAL_CAMERA_LIST.VIRTUAL_TD1
+  | _DEMO_VIRTUAL_CAMERA_LIST.VIRTUAL_TD2;
+
+const _DEMO_VIRTUAL_CAMERA_LIST_LABEL: Record<_DEMO_OnlyVirtualCameraType, string> = {
+  [_DEMO_VIRTUAL_CAMERA_LIST.VIRTUAL_TD2]: "Virtual Camera 3: ID (TD2)",
+  [_DEMO_VIRTUAL_CAMERA_LIST.VIRTUAL_TD1]: "Virtual Camera 2: ID (TD1)",
+  [_DEMO_VIRTUAL_CAMERA_LIST.VIRTUAL_PASSPORT]: "Virtual Camera 1: Passport",
+};
+
 export interface MRZScannerViewConfig {
   cameraEnhancerUIPath?: string;
   container?: HTMLElement | string;
@@ -45,6 +65,10 @@ interface DCEElements {
 
 // Implementation
 export default class MRZScannerView {
+  // DEMO
+  private demoScanningMode: _DEMO_CameraType = _DEMO_VIRTUAL_CAMERA_LIST.PHYSICAL_CAMERA;
+  private demoScanningResolution = "1080p";
+
   private isSoundFeedbackOn: boolean = false;
 
   private scanModeManager: Record<EnumMRZDocumentType, boolean> = {
@@ -307,28 +331,92 @@ export default class MRZScannerView {
     // Add click handlers to all options
     [...cameraOptions, ...resolutionOptions].forEach((option) => {
       option.addEventListener("click", async (e) => {
-        const deviceId = option.getAttribute("data-davice-id");
-        const resHeight = option.getAttribute("data-height");
-        const resWidth = option.getAttribute("data-width");
-        if (deviceId) {
-          this.resources.cameraEnhancer.selectCamera(deviceId).then(() => {
-            this.toggleScanGuide();
-          });
-        } else if (resHeight && resWidth) {
-          this.resources.cameraEnhancer
-            .setResolution({
-              width: parseInt(resWidth),
-              height: parseInt(resHeight),
-            })
-            .then(() => {
-              this.toggleScanGuide();
-            });
-        }
-
         if (settingsContainer.style.display !== "none") {
           this.toggleSelectCameraBox();
+
+          if (
+            !this._demo_IsFirefoxAndroid &&
+            Object.keys(_DEMO_VIRTUAL_CAMERA_LIST_LABEL).includes(this.demoScanningMode)
+          ) {
+            if (option.getAttribute("data-davice-id")) {
+              // Handle device selection
+              if (!Object.keys(_DEMO_VIRTUAL_CAMERA_LIST_LABEL).includes(option.getAttribute("data-davice-id"))) {
+                this._demo_saveSelectedCamera(option.getAttribute("data-davice-id"));
+
+                this._demo_playVideoWithRes(
+                  "stop",
+                  _DEMO_VIRTUAL_CAMERA_LIST.PHYSICAL_CAMERA,
+                  option.getAttribute("data-davice-id") as _DEMO_VIRTUAL_CAMERA_LIST
+                );
+                this.demoScanningMode = _DEMO_VIRTUAL_CAMERA_LIST.PHYSICAL_CAMERA;
+              }
+            } else if (option.getAttribute("data-height")) {
+              // Handle resolution selection
+              const height = option.getAttribute("data-height");
+
+              // Map height to correct resolution string
+              let resolution: "480p" | "720p" | "1080p" | "2k" | "4k";
+              switch (height) {
+                case "2160":
+                  resolution = "4k";
+                  break;
+                case "1440":
+                  resolution = "2k";
+                  break;
+                case "1080":
+                  resolution = "1080p";
+                  break;
+                case "720":
+                  resolution = "720p";
+                  break;
+                case "480":
+                  resolution = "480p";
+                  break;
+                default:
+                  return; // Invalid resolution
+              }
+
+              this._demo_playVideoWithRes(resolution, this.demoScanningMode);
+              this.demoScanningResolution = resolution;
+            }
+          }
         }
       });
+    });
+    this._demo_AttachFakeEventsToCameras();
+  }
+
+  private _demo_AttachFakeEventsToCameras() {
+    if (this._demo_IsFirefoxAndroid) {
+      return; // Don't attach demo events for Firefox Android
+    }
+
+    const configContainer = getElement(this.config.container);
+
+    const DCEContainer = configContainer.children[configContainer.children.length - 1];
+
+    if (!DCEContainer?.shadowRoot) return;
+
+    const cameraOptionsContainer = DCEContainer.shadowRoot.querySelector(".dce-mn-cameras");
+    if (!cameraOptionsContainer) return;
+
+    // Check if demo cameras already exist
+    Object.keys(_DEMO_VIRTUAL_CAMERA_LIST_LABEL).forEach((cam) => {
+      const demoCamera = cameraOptionsContainer.querySelector(`[data-davice-id="${cam}"]`) as HTMLElement;
+
+      demoCamera.onclick = async (e) => {
+        e.stopPropagation();
+        this._demo_playVideoWithRes("1080p", cam as _DEMO_CameraType);
+        this.demoScanningMode = cam as _DEMO_CameraType;
+
+        this._demo_saveSelectedCamera(cam);
+      };
+    });
+  }
+
+  private _demo_CheckForFakeCamera(id: string) {
+    return Object.keys(_DEMO_VIRTUAL_CAMERA_LIST_LABEL).some((cam) => {
+      return id === cam && this.demoScanningMode === cam;
     });
   }
 
@@ -348,8 +436,14 @@ export default class MRZScannerView {
 
     cameraOptions.forEach((options) => {
       const o = options as HTMLElement;
-      if (o.getAttribute("data-davice-id") === selectedCamera?.deviceId) {
+      const deviceId = o.getAttribute("data-davice-id");
+
+      if (
+        this._demo_CheckForFakeCamera(deviceId) ||
+        (this.demoScanningMode === _DEMO_VIRTUAL_CAMERA_LIST.PHYSICAL_CAMERA && deviceId === selectedCamera?.deviceId)
+      ) {
         o.style.border = "2px solid #fe814a";
+        this._demo_saveSelectedCamera(deviceId);
       } else {
         o.style.border = "none";
       }
@@ -362,16 +456,25 @@ export default class MRZScannerView {
       "2k": "1440",
       "4k": "2160",
     };
+
     const resolutionLvl = findClosestResolutionLevel(selectedResolution);
 
     resOptions.forEach((options) => {
       const o = options as HTMLElement;
       const height = o.getAttribute("data-height");
 
-      if (height === heightMap[resolutionLvl]) {
-        o.style.border = "2px solid #fe814a";
+      if (this.demoScanningMode !== _DEMO_VIRTUAL_CAMERA_LIST.PHYSICAL_CAMERA) {
+        if (height === heightMap[this.demoScanningResolution]) {
+          o.style.border = "2px solid #fe814a";
+        } else {
+          o.style.border = "none";
+        }
       } else {
-        o.style.border = "none";
+        if (height === heightMap[resolutionLvl]) {
+          o.style.border = "2px solid #fe814a";
+        } else {
+          o.style.border = "none";
+        }
       }
     });
   }
@@ -384,6 +487,9 @@ export default class MRZScannerView {
 
     const settingsBox = DCEContainer.shadowRoot.querySelector(".dce-mn-resolution-box") as HTMLElement;
 
+    // DEMO purpose - add camera
+    this._demo_AddFakeCameras();
+
     // Highlight current camera and resolution
     this.highlightCameraAndResolutionOption();
 
@@ -391,6 +497,46 @@ export default class MRZScannerView {
     this.attachOptionClickListeners();
 
     settingsBox.click();
+  }
+
+  private get _demo_IsFirefoxAndroid(): boolean {
+    return (
+      navigator.userAgent.toLowerCase().includes("firefox") && navigator.userAgent.toLowerCase().includes("android")
+    );
+  }
+
+  private _demo_saveSelectedCamera(deviceId: string) {
+    try {
+      localStorage.setItem("dds-demo-save-selected-item", deviceId);
+    } catch (error) {
+      console.warn("Failed to save camera preference:", error);
+    }
+  }
+
+  private _demo_AddFakeCameras() {
+    if (this._demo_IsFirefoxAndroid) {
+      return; // Don't add demo cameras for Firefox Android
+    }
+
+    const configContainer = getElement(this.config.container);
+
+    const DCEContainer = configContainer.children[configContainer.children.length - 1];
+
+    if (!DCEContainer?.shadowRoot) return;
+
+    const cameraOptionsContainer = DCEContainer.shadowRoot.querySelector(".dce-mn-cameras");
+    if (!cameraOptionsContainer) return;
+
+    Object.entries(_DEMO_VIRTUAL_CAMERA_LIST_LABEL).forEach(([key, label]) => {
+      const existingDemoCam = cameraOptionsContainer.querySelector(`[data-davice-id="${key}"]`);
+      if (!existingDemoCam) {
+        const demoCam = document.createElement("div");
+        demoCam.className = "dce-mn-camera-option";
+        demoCam.setAttribute("data-davice-id", key);
+        demoCam.innerText = label;
+        cameraOptionsContainer.prepend(demoCam);
+      }
+    });
   }
 
   private async uploadImage() {
@@ -420,7 +566,7 @@ export default class MRZScannerView {
 
         input.addEventListener("cancel", async () => {
           this.hideScannerLoadingOverlay(false);
-          await this.launch();
+          await this.launch(this.demoScanningMode);
         });
 
         input.click();
@@ -428,7 +574,7 @@ export default class MRZScannerView {
 
       if (!file) {
         this.hideScannerLoadingOverlay(false);
-        await this.launch();
+        await this.launch(this.demoScanningMode);
 
         return;
       }
@@ -684,7 +830,7 @@ export default class MRZScannerView {
     }
   }
 
-  async openCamera(): Promise<void> {
+  async openCamera(_demo_cameraType: _DEMO_CameraType = _DEMO_VIRTUAL_CAMERA_LIST.PHYSICAL_CAMERA): Promise<void> {
     try {
       this.showScannerLoadingOverlay("Initializing camera...");
 
@@ -693,20 +839,54 @@ export default class MRZScannerView {
       const configContainer = getElement(this.config.container);
       configContainer.style.display = "block";
 
-      if (!cameraEnhancer.isOpen()) {
+      // If it's the first scan, automatically start with demo video
+      // Stop  videoSrc if its on firefox
+      if (!this._demo_IsFirefoxAndroid && Object.keys(_DEMO_VIRTUAL_CAMERA_LIST_LABEL).includes(_demo_cameraType)) {
         const currentCameraView = cameraView.getUIElement();
         if (!currentCameraView.parentElement) {
           configContainer.append(currentCameraView);
         }
 
         await cameraEnhancer.open();
-      } else if (cameraEnhancer.isPaused()) {
-        await cameraEnhancer.resume();
+        await this._demo_playVideoWithRes(this.demoScanningResolution as any, _demo_cameraType, null, true);
+      } else if (cameraEnhancer.isOpen()) {
+        if (cameraEnhancer.isPaused()) {
+          await cameraEnhancer.resume();
+        }
+      } else {
+        const currentCameraView = cameraView.getUIElement();
+        if (!currentCameraView.parentElement) {
+          getElement(this.config.container).append(currentCameraView);
+        }
+        await cameraEnhancer.open();
       }
+      this.toggleScanGuide();
+
+      this.demoScanningMode = this._demo_IsFirefoxAndroid
+        ? _DEMO_VIRTUAL_CAMERA_LIST.PHYSICAL_CAMERA
+        : _demo_cameraType;
 
       // Assign element
-      if (!this.initializedDCE && cameraEnhancer.isOpen()) {
+      if (
+        (!this.initializedDCE && cameraEnhancer.isOpen()) ||
+        (!this._demo_IsFirefoxAndroid && Object.keys(_DEMO_VIRTUAL_CAMERA_LIST_LABEL).includes(_demo_cameraType))
+      ) {
         await this.initializeElements();
+      }
+
+      // if not demo, click btn to switch cam
+      this._demo_saveSelectedCamera(_demo_cameraType);
+      if (!(!this._demo_IsFirefoxAndroid && Object.keys(_DEMO_VIRTUAL_CAMERA_LIST_LABEL).includes(_demo_cameraType))) {
+        this.demoScanningMode = _DEMO_VIRTUAL_CAMERA_LIST.PHYSICAL_CAMERA;
+
+        const DCEContainer = configContainer.children[configContainer.children.length - 1];
+
+        const cameraOptions = DCEContainer.shadowRoot.querySelectorAll(".dce-mn-camera-option");
+        cameraOptions.forEach((el) => {
+          if (el.getAttribute("data-davice-id") === _demo_cameraType) {
+            (el as HTMLElement).click();
+          }
+        });
       }
 
       // Add resize
@@ -734,6 +914,42 @@ export default class MRZScannerView {
     } finally {
       this.hideScannerLoadingOverlay();
     }
+  }
+
+  private async _demo_playVideoWithRes(
+    resolution: "480p" | "720p" | "1080p" | "2k" | "4k" | "stop",
+    demoType?: _DEMO_CameraType,
+    deviceId?: string,
+    fromOpenCamera?: boolean // flag to check if it's coming from main demo page
+  ) {
+    if (this._demo_IsFirefoxAndroid) return;
+
+    const { cameraEnhancer } = this.resources;
+
+    if (!fromOpenCamera) {
+      this.showScannerLoadingOverlay(
+        `Opening ${_DEMO_VIRTUAL_CAMERA_LIST_LABEL?.[demoType as _DEMO_OnlyVirtualCameraType] || "Camera"}`
+      );
+    }
+
+    cameraEnhancer.close();
+    cameraEnhancer.getVideoEl().setAttribute("crossOrigin", "anonymous");
+
+    if (resolution !== "stop") {
+      const baseUrl = "https://tst.dynamsoft.com/temp/mrz-scanner/demo-video/";
+      const demoPath = `${demoType}/`;
+      cameraEnhancer.videoSrc = `${baseUrl}${demoPath}${resolution}-dynamsoft-sample-vid.mp4`;
+
+      this._demo_saveSelectedCamera(demoType);
+    } else {
+      cameraEnhancer.videoSrc = "";
+      cameraEnhancer.selectCamera(deviceId);
+      this._demo_saveSelectedCamera(deviceId);
+    }
+
+    cameraEnhancer.open().then(() => this.toggleScanGuide());
+
+    this.hideScannerLoadingOverlay(false);
   }
 
   async closeCamera(hideContainer: boolean = true) {
@@ -992,7 +1208,7 @@ export default class MRZScannerView {
     }
   }
 
-  async launch(): Promise<MRZResult> {
+  async launch(_demo_cameraType?: _DEMO_CameraType): Promise<MRZResult> {
     try {
       await this.initialize();
 
@@ -1002,13 +1218,14 @@ export default class MRZScannerView {
         this.currentScanResolver = resolve;
 
         // Start capturing
-        await this.openCamera();
+        await this.openCamera(_demo_cameraType || this.demoScanningMode);
 
-        // Assign element
-        if (!this.initializedDCE && cameraEnhancer.isOpen()) {
+        if (
+          (!this.initializedDCE && cameraEnhancer.isOpen()) ||
+          (!this._demo_IsFirefoxAndroid && Object.keys(_DEMO_VIRTUAL_CAMERA_LIST_LABEL).includes(_demo_cameraType))
+        ) {
           await this.initializeElements();
         }
-
         await this.startCapturing();
 
         //Show scan guide
