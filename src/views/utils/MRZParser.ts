@@ -54,8 +54,8 @@ export const MRZDataLabel: Record<EnumMRZData, string> = {
   [EnumMRZData.DocumentType]: "Document Type",
   [EnumMRZData.DocumentNumber]: "Document Number",
   [EnumMRZData.MRZText]: "MRZ Text",
-  [EnumMRZData.FirstName]: "First Name",
-  [EnumMRZData.LastName]: "Last Name",
+  [EnumMRZData.FirstName]: "Given Name(s)",
+  [EnumMRZData.LastName]: "Surname",
   [EnumMRZData.Age]: "Age",
   [EnumMRZData.Sex]: "Sex",
   [EnumMRZData.IssuingState]: "Issuing State",
@@ -224,10 +224,15 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
     [EnumMRZData.InvalidFields]: invalidFields,
     [EnumMRZData.MRZText]: mrzText,
     [EnumMRZData.DocumentType]: capitalize(docTypeLabel),
+    [EnumMRZData.FirstName]: fields[EnumMRZData.FirstName],
+    [EnumMRZData.LastName]: fields[EnumMRZData.LastName],
     [EnumMRZData.Age]: age,
-    ...fields,
     [EnumMRZData.DateOfBirth]: dateOfBirth,
+    [EnumMRZData.Sex]: fields[EnumMRZData.Sex],
+    [EnumMRZData.Nationality]: fields[EnumMRZData.Nationality],
+    [EnumMRZData.DocumentNumber]: fields[EnumMRZData.DocumentNumber],
     [EnumMRZData.DateOfExpiry]: dateOfExpiry,
+    [EnumMRZData.IssuingState]: fields[EnumMRZData.IssuingState],
   };
 
   return mrzData;
