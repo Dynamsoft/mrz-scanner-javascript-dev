@@ -93,13 +93,15 @@ body {
   width: 100%;
   max-width: 500px;
   background-color: #333;
-  border-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+
   margin-bottom: 20px;
   border: 2px solid #131313;
 }
 
 .selection-header {
-  padding: 15px;
+  padding: 8px 15px;
   background-color: #131313;
   width: 100%;
   border-top-left-radius: 5px;
@@ -236,6 +238,10 @@ body {
 
 /* Responsive styles */
 @media (max-width: 768px) {
+  .logo,
+  .footer {
+    background-color: rgb(34, 34, 34);
+  }
   .container {
     padding: 10px;
     min-height: 20dvh;
@@ -259,6 +265,7 @@ body {
 
   .header {
     font-size: 24px;
-    padding-top: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
   }
 }
