@@ -63,7 +63,8 @@ class MRZScanner {
   private loadingScreen: ReturnType<typeof showLoadingScreen> | null = null;
 
   private showLoadingOverlay(message?: string) {
-    const configContainer = getElement(this.config.scannerViewConfig.container);
+    const configContainer =
+      getElement(this.config.scannerViewConfig.container) || getElement(this.config.resultViewConfig.container);
     this.loadingScreen = showLoadingScreen(configContainer, { message });
     configContainer.style.display = "block";
     configContainer.style.position = "relative";
@@ -100,14 +101,25 @@ class MRZScanner {
     }
 
     try {
-      this.initializeMRZScannerConfig();
+      const mrzScannerConfigSuccess = this.initializeMRZScannerConfig();
+      if (!mrzScannerConfigSuccess) {
+        // Failed to initialize mrz scanner config
+        console.error("Failed to initialize mrz scanner config");
+        return { resources: this.resources, components: {} };
+      }
 
       // Create loading screen style
       createStyle("dynamsoft-mrz-loading-screen-style", DEFAULT_LOADING_SCREEN_STYLE);
 
       this.showLoadingOverlay("Loading...");
 
-      await this.initializeDCVResources();
+      const success = await this.initializeDCVResources();
+      if (!success) {
+        this.hideLoadingOverlay(true);
+        // Failed to initialize DCV resources
+        console.error("Failed to initialize DCV resources");
+        return { resources: this.resources, components: {} };
+      }
 
       this.resources.onResultUpdated = (result) => {
         this.resources.result = result;
@@ -139,11 +151,17 @@ class MRZScanner {
       this.isInitialized = false;
 
       let errMsg = ex?.message || ex;
-      throw new Error(`Initialization Failed: ${errMsg}`);
+      const error = `Initialization Failed: ${errMsg}`;
+
+      alert(error);
+      console.error(error);
+      return { resources: this.resources, components: {} };
+    } finally {
+      this.hideLoadingOverlay(true);
     }
   }
 
-  private async initializeDCVResources(): Promise<void> {
+  private async initializeDCVResources(): Promise<boolean> {
     try {
       LicenseManager.initLicense(this.config?.license || "", true);
 
@@ -164,16 +182,24 @@ class MRZScanner {
       this.resources.cameraView = await CameraView.createInstance(this.config.scannerViewConfig?.cameraEnhancerUIPath);
       this.resources.cameraEnhancer = await CameraEnhancer.createInstance(this.resources.cameraView);
       this.resources.cvRouter = await CaptureVisionRouter.createInstance();
+
+      return true;
     } catch (ex: any) {
       let errMsg = ex?.message || ex;
 
       if (errMsg?.toLowerCase().includes("license")) {
-        throw new Error(
-          `The MRZ Scanner license is invalid or has expired. Please contact the site administrator to resolve this issue.`
-        );
+        const error = `The MRZ Scanner license is invalid or has expired. Please contact the site administrator to resolve this issue.`;
+
+        alert(error);
+        console.error(error);
       } else {
-        throw new Error(`Resource Initialization Failed: ${errMsg}`);
+        const error = `Resource Initialization Failed: ${errMsg}`;
+
+        alert(error);
+        console.error(error);
       }
+
+      return false;
     }
   }
 
@@ -209,16 +235,65 @@ class MRZScanner {
       : license;
   }
 
-  private validateViewConfigs() {
-    // Only validate if there's no main container
+  private validateViewConfigs(): boolean {
+    // Case 1: Using separate containers (no main container)
     if (!this.config.container) {
-      // Check result view
-      if (this.config.showResultView && !this.config.resultViewConfig?.container) {
-        throw new Error(
-          "ResultView container is required when showResultView is true and no main container is provided"
-        );
+      // Case 1.1: Result view requested but no container provided
+      if (
+        !this.config.scannerViewConfig?.container &&
+        this.config.showResultView &&
+        !this.config.resultViewConfig?.container
+      ) {
+        const error = `MRZResultView container is required when showResultView is true`;
+        alert(error);
+        console.error(error);
+        return false;
+      }
+
+      // Case 1.2: Only result view container provided but no existing result
+      if (
+        !this.config.scannerViewConfig?.container &&
+        this.config.resultViewConfig?.container &&
+        !this.resources.result
+      ) {
+        const error = `Result is needed to create MRZResultView without a scanner view`;
+        alert(error);
+        console.error(error);
+        return false;
       }
     }
+
+    // Case 2: Ensure valid container references where provided
+    try {
+      // Check that specified containers can be resolved
+      if (this.config.container && !getElement(this.config.container)) {
+        const error = `Invalid main container reference`;
+        alert(error);
+        console.error(error);
+        return false;
+      }
+
+      if (this.config.scannerViewConfig?.container && !getElement(this.config.scannerViewConfig.container)) {
+        const error = `Invalid scanner view container reference`;
+        alert(error);
+        console.error(error);
+        return false;
+      }
+
+      if (this.config.resultViewConfig?.container && !getElement(this.config.resultViewConfig.container)) {
+        const error = `Invalid result view container reference`;
+        alert(error);
+        console.error(error);
+        return false;
+      }
+    } catch (e) {
+      const error = `Error accessing container references: ${e.message}`;
+      alert(error);
+      console.error(error);
+      return false;
+    }
+
+    return true;
   }
 
   private showResultView() {
@@ -239,8 +314,11 @@ class MRZScanner {
     return this.config.showResultView && !!this.config.resultViewConfig?.container;
   }
 
-  private initializeMRZScannerConfig() {
-    this.validateViewConfigs();
+  private initializeMRZScannerConfig(): boolean {
+    const validViewConfig = this.validateViewConfigs();
+    if (!validViewConfig) {
+      return false;
+    }
 
     if (this.shouldCreateDefaultContainer()) {
       this.config.container = this.createDefaultMRZScannerContainer();
@@ -283,6 +361,8 @@ class MRZScanner {
       scannerViewConfig,
       resultViewConfig,
     });
+
+    return true;
   }
 
   private createViewContainers(mainContainer: HTMLElement): Record<string, HTMLElement> {
@@ -360,6 +440,10 @@ class MRZScanner {
     try {
       this.isCapturing = true;
       const { components } = await this.initialize();
+
+      if (isEmptyObject(components)) {
+        throw new Error(`MRZ Scanner initialization failed.`);
+      }
 
       if (this.config.container) {
         getElement(this.config.container).style.display = "block";

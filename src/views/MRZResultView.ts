@@ -6,7 +6,7 @@ import MRZScannerView from "./MRZScannerView";
 import { SharedResources } from "../MRZScanner";
 
 export interface MRZResultViewToolbarButtonsConfig {
-  retake?: ToolbarButtonConfig;
+  rescan?: ToolbarButtonConfig;
   done?: ToolbarButtonConfig;
 }
 
@@ -45,7 +45,7 @@ export default class MRZResultView {
     }
   }
 
-  private async handleRetake() {
+  private async handleRescan() {
     try {
       if (!this.scannerView) {
         console.error("Scanner View not initialized");
@@ -75,7 +75,7 @@ export default class MRZResultView {
       await this.initialize();
       getElement(this.config.container).style.display = "flex";
     } catch (error) {
-      console.error("Error in retake handler:", error);
+      console.error("Error in rescan handler:", error);
       // Make sure to resolve with error if something goes wrong
       if (this.currentScanResultViewResolver) {
         this.currentScanResultViewResolver({
@@ -135,12 +135,12 @@ export default class MRZResultView {
 
     const buttons: ToolbarButton[] = [
       {
-        id: `dynamsoft-mrz-scanResult-retake`,
-        icon: toolbarButtonsConfig?.retake?.icon || MRZScanner_ICONS.retake,
-        label: toolbarButtonsConfig?.retake?.label || "Re-take",
-        onClick: () => this.handleRetake(),
-        className: `${toolbarButtonsConfig?.retake?.className || ""}`,
-        isHidden: toolbarButtonsConfig?.retake?.isHidden || false,
+        id: `dynamsoft-mrz-scanResult-rescan`,
+        icon: toolbarButtonsConfig?.rescan?.icon || MRZScanner_ICONS.rescan,
+        label: toolbarButtonsConfig?.rescan?.label || "Re-scan",
+        onClick: () => this.handleRescan(),
+        className: `${toolbarButtonsConfig?.rescan?.className || ""}`,
+        isHidden: toolbarButtonsConfig?.rescan?.isHidden || false,
         isDisabled: !this.scannerView,
       },
       {
@@ -229,13 +229,6 @@ export default class MRZResultView {
         resultLabel.className = "dynamsoft-mrz-data-label";
         resultLabel.innerText = MRZDataLabel[key as EnumMRZData] || key;
 
-        if (isEditingAllowed && !nonEditableFields.includes(key as EnumMRZData)) {
-          const editIcon = document.createElement("span");
-          editIcon.className = "dynamsoft-mrz-edit-icon";
-          editIcon.innerHTML = MRZScanner_ICONS.edit;
-          resultLabel.appendChild(editIcon);
-        }
-
         // Add validation marker for invalid fields
         if (isInvalid) {
           const invalidIcon = document.createElement("span");
@@ -319,7 +312,7 @@ export default class MRZResultView {
       return resultContainer;
     } else {
       const empty = document.createElement("div");
-      empty.className = "dynamsoft-mrz-data-row";
+      empty.className = "dynamsoft-mrz-data-row empty";
       empty.innerText = "No MRZ detected. Please try again.";
 
       resultContainer.appendChild(empty);
@@ -411,7 +404,7 @@ const DEFAULT_RESULT_VIEW_STYLE = `
   display: flex;
   justify-content: center;
   align-items: center;
-          background-color: #323234,
+          background-color: #323234;
           }
 
     
@@ -543,7 +536,7 @@ const DEFAULT_RESULT_VIEW_STYLE = `
   border-color: #fe8e14;
   outline: none;
 }
-    @media (orientation: landscape) and (max-width: 1024px) {
+    @media screen and (orientation: landscape) and (max-width: 1024px) and (max-height: 600px) {
     .dynamsoft-mrz-result-view-container {
       flex-direction: row;
     }
@@ -564,6 +557,15 @@ const DEFAULT_RESULT_VIEW_STYLE = `
 .dynamsoft-mrz-data-row:last-of-type {
 padding-bottom: 2rem;
 }
+
+.dynamsoft-mrz-data-row.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    }
+
 
   }
 
