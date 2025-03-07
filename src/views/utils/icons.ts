@@ -1,5 +1,5 @@
 export const MRZScanner_ICONS = {
-  retake: `<svg id="re-take" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="28.761" height="23" viewBox="0 0 28.761 23">
+  rescan: `<svg id="re-take" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="28.761" height="23" viewBox="0 0 28.761 23">
 <defs>
 <clipPath id="retakeclip-path">
   <rect id="Rectangle_2773" data-name="Rectangle 2773" width="28.761" height="23" fill="#fff"/>

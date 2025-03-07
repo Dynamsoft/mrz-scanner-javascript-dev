@@ -69,7 +69,7 @@ const DEFAULT_CONTROLS_STYLE = `
   }
 
   
-  @media (orientation: landscape) and (max-width: 1024px) {
+    @media screen and (orientation: landscape) and (max-width: 1024px) and (max-height: 600px) {
     .dynamsoft-mrz-controls {
       flex-direction: column;
       height: 100%;
