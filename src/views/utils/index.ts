@@ -67,6 +67,15 @@ const DEFAULT_CONTROLS_STYLE = `
     align-items: flex-start;
     justify-content: center;
   }
+
+  
+    @media screen and (orientation: landscape) and (max-width: 1024px) and (max-height: 600px) {
+    .dynamsoft-mrz-controls {
+      flex-direction: column;
+      height: 100%;
+      width: 5rem;
+    }
+  }
 `;
 
 export function createControls(buttons: ToolbarButton[], containerStyle?: Partial<CSSStyleDeclaration>): HTMLElement {

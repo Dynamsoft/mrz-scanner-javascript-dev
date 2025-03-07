@@ -1,5 +1,5 @@
 export const MRZScanner_ICONS = {
-  retake: `<svg id="re-take" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="28.761" height="23" viewBox="0 0 28.761 23">
+  rescan: `<svg id="re-take" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="28.761" height="23" viewBox="0 0 28.761 23">
 <defs>
 <clipPath id="retakeclip-path">
   <rect id="Rectangle_2773" data-name="Rectangle 2773" width="28.761" height="23" fill="#fff"/>
@@ -24,7 +24,43 @@ export const MRZScanner_ICONS = {
 </g>
 </svg>
 `,
-  failed: `<svg class="w-4 h-4" viewBox="0 0 20 20" width="20" height="20" fill="#ef4444">
-  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-</svg>`,
+  failed: `
+  <svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="20"
+  height="20"
+  viewBox="0 0 20 20"
+  fill="none"
+  stroke="#ef4444"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6l-12 12" />
+  <path d="M6 6l12 12" />
+</svg>
+`,
+  info: `
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="white"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+  <path d="M12 9h.01" />
+  <path d="M11 12h1v4h1" />
+</svg>
+`,
+  edit: `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="0.75">
+  <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"></path>
+  <path d="M13.5 6.5l4 4"></path>
+</svg>
+`,
 };

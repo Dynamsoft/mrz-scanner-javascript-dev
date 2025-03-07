@@ -66,9 +66,7 @@
 
       // Initialize the Dynamsoft MRZ Scanner
       const mrzscanner = new Dynamsoft.MRZScanner({
-        license: "YOUR_LICENSE_KEY_HERE",
-        // container: mrzContainer,
-        container: "#mrz-container",
+        license: "",
         scannerViewConfig: {
           // showScanGuide: false,
           // showFormatSelector: false,
@@ -76,6 +74,7 @@
           // showSoundToggle: false,
         },
         resultViewConfig: {
+          allowResultEditing: true,
           // toolbarButtonsConfig: {
           //   done: {
           //     isHidden: true,
@@ -83,12 +82,10 @@
           // },
           // showOriginalImage: false,
         },
-        // mrzFormatType: ["td1", "passport", "td2"],
-        // showResultView: false,
       });
       (async () => {
         // Launch the scanner and wait for the result
-        const result = await mrzscanner.launch({});
+        const result = await mrzscanner.launch();
         console.log(result);
 
         if (result?.data) {
@@ -105,14 +102,19 @@
 
           let resultHTML = ``;
           Object.entries(result.data).forEach(([key, value]) => {
-            const div = document.createElement("div");
+            const label = Dynamsoft.MRZDataLabel[key];
 
-            if (key === "mrzText") {
-              div.innerText = `${key}: ${JSON.stringify(value)}`;
-            } else {
-              div.innerHTML = `${key}: ${JSON.stringify(value)}`;
-            }
-            resultContainer.appendChild(div);
+            const container = document.createElement("div");
+            container.className = "mrz-result-container";
+            const labelContainer = document.createElement("div");
+            const valueContainer = document.createElement("div");
+
+            labelContainer.textContent = label;
+            valueContainer.textContent = `${JSON.stringify(value)}`;
+
+            container.appendChild(labelContainer);
+            container.appendChild(valueContainer);
+            resultContainer.appendChild(container);
           });
         } else {
           resultContainer.innerHTML =
@@ -121,4 +123,15 @@
       })();
     </script>
   </body>
+  <style>
+    .mrz-result-container {
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 1rem;
+    }
+
+    .mrz-result-container:first-of-type {
+      padding-top: 1rem;
+    }
+  </style>
 </html>

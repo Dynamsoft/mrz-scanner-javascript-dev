@@ -22,7 +22,7 @@ export interface MRZScannerViewConfig {
   showFormatSelector?: boolean;
   showSoundToggle?: boolean;
 
-  enableMultiFrameCrossFilter?: boolean; // false by default
+  enableMultiFrameCrossFilter?: boolean; // true by default
 }
 
 const MRZScanGuideRatios: Record<EnumMRZDocumentType, { width: number; height: number }> = {
@@ -904,11 +904,11 @@ export default class MRZScannerView {
         newSettings.roi.points = [
           {
             x: 0,
-            y: 66,
+            y: 50,
           },
           {
             x: 100,
-            y: 66,
+            y: 50,
           },
           {
             x: 100,
