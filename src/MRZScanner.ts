@@ -64,19 +64,23 @@ class MRZScanner {
 
   private showLoadingOverlay(message?: string) {
     const configContainer =
-      getElement(this.config.scannerViewConfig.container) || getElement(this.config.resultViewConfig.container);
+      getElement(this.config.scannerViewConfig?.container) || getElement(this.config.resultViewConfig?.container);
+
     this.loadingScreen = showLoadingScreen(configContainer, { message });
     configContainer.style.display = "block";
     configContainer.style.position = "relative";
   }
 
   private hideLoadingOverlay(hideContainer: boolean = false) {
+    const configContainer =
+      getElement(this.config.scannerViewConfig?.container) || getElement(this.config.resultViewConfig?.container);
+
     if (this.loadingScreen) {
       this.loadingScreen.hide();
       this.loadingScreen = null;
 
       if (hideContainer) {
-        getElement(this.config.container).style.display = "none";
+        configContainer.style.display = "none";
       }
     }
   }
@@ -110,7 +114,6 @@ class MRZScanner {
 
       // Create loading screen style
       createStyle("dynamsoft-mrz-loading-screen-style", DEFAULT_LOADING_SCREEN_STYLE);
-
       this.showLoadingOverlay("Loading...");
 
       const success = await this.initializeDCVResources();
@@ -240,7 +243,7 @@ class MRZScanner {
     if (!this.config.container) {
       // Case 1.1: Result view requested but no container provided
       if (
-        !this.config.scannerViewConfig?.container &&
+        this.config.scannerViewConfig?.container &&
         this.config.showResultView &&
         !this.config.resultViewConfig?.container
       ) {
@@ -341,7 +344,8 @@ class MRZScanner {
     // Views Config
     const scannerViewConfig = {
       ...this.config.scannerViewConfig,
-      container: viewContainers[EnumMRZScannerViews.Scanner] || this.config.scannerViewConfig?.container || null,
+      container:
+        viewContainers[EnumMRZScannerViews.Scanner] || getElement(this.config.scannerViewConfig?.container) || null,
       cameraEnhancerUIPath: this.config.scannerViewConfig?.cameraEnhancerUIPath || DEFAULT_DCE_UI_PATH,
       templateFilePath: baseConfig.templateFilePath,
       utilizedTemplateNames: baseConfig.utilizedTemplateNames,
@@ -352,7 +356,8 @@ class MRZScanner {
     const resultViewConfig = this.showResultView()
       ? {
           ...this.config.resultViewConfig,
-          container: viewContainers[EnumMRZScannerViews.Result] || this.config.resultViewConfig?.container || null,
+          container:
+            viewContainers[EnumMRZScannerViews.Result] || getElement(this.config.resultViewConfig?.container) || null,
         }
       : undefined;
 
