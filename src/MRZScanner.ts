@@ -239,7 +239,15 @@ class MRZScanner {
     // Case 1: Using separate containers (no main container)
     if (!this.config.container) {
       // Case 1.1: Result view requested but no container provided
+<<<<<<< HEAD
       if (this.config.showResultView && !this.config.resultViewConfig?.container) {
+=======
+      if (
+        !this.config.scannerViewConfig?.container &&
+        this.config.showResultView &&
+        !this.config.resultViewConfig?.container
+      ) {
+>>>>>>> main
         const error = `MRZResultView container is required when showResultView is true`;
         alert(error);
         console.error(error);
