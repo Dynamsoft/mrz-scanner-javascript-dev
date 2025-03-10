@@ -81,6 +81,10 @@ class MRZScanner {
 
       if (hideContainer) {
         configContainer.style.display = "none";
+
+        if (this.config?.container) {
+          getElement(this.config.container).style.display = "none";
+        }
       }
     }
   }
