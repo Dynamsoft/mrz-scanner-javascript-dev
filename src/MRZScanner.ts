@@ -276,14 +276,14 @@ class MRZScanner {
         return false;
       }
 
-      if (this.config.scannerViewConfig?.container && !getElement(this.config.scannerViewConfig.container)) {
+      if (this.config.scannerViewConfig?.container && !getElement(this.config.scannerViewConfig?.container)) {
         const error = `Invalid scanner view container reference`;
         alert(error);
         console.error(error);
         return false;
       }
 
-      if (this.config.resultViewConfig?.container && !getElement(this.config.resultViewConfig.container)) {
+      if (this.config.resultViewConfig?.container && !getElement(this.config.resultViewConfig?.container)) {
         const error = `Invalid result view container reference`;
         alert(error);
         console.error(error);
@@ -318,6 +318,8 @@ class MRZScanner {
   }
 
   private initializeMRZScannerConfig(): boolean {
+    this.config = this.config ?? {};
+
     const validViewConfig = this.validateViewConfigs();
     if (!validViewConfig) {
       return false;
