@@ -565,8 +565,6 @@ padding-bottom: 2rem;
     height: 100%;
     width: 100%;
     }
-
-
   }
 
 `;

@@ -12,7 +12,7 @@ export function getElement(element: string | HTMLElement): HTMLElement | null {
 const DEFAULT_CONTROLS_STYLE = `
   .dynamsoft-mrz-controls {
     display: flex;
-    height: 8rem;
+    height: 6rem;
     background-color: #323234;
     align-items: center;
     font-size: 12px;
@@ -66,6 +66,7 @@ const DEFAULT_CONTROLS_STYLE = `
     display: flex;
     align-items: flex-start;
     justify-content: center;
+    padding-bottom: 0.5rem;
   }
 
   
@@ -74,6 +75,10 @@ const DEFAULT_CONTROLS_STYLE = `
       flex-direction: column;
       height: 100%;
       width: 5rem;
+    }
+
+    .dynamsoft-mrz-control-text {
+      padding: 0 0.5rem 0.5rem;
     }
   }
 `;

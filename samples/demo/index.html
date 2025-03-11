@@ -20,17 +20,14 @@
 
     <!-- Mobile View -->
     <div id="mobile-view" class="container">
-      <div class="selection-header">Select a camera to start</div>
       <div class="camera-selection">
-        <div class="selection-group-container">
-          <div class="selection-group-title live">Live Cameras:</div>
-          <div class="live-camera-options">
-            <div class="camera-option">Loading...</div>
-          </div>
+        <div class="selection-group-title live">Available Live Cameras:</div>
+        <div class="live-camera-options">
+          <div class="camera-option">Loading...</div>
         </div>
       </div>
 
-      <button class="start-button" id="start-scan">Start Scan with Live Camera</button>
+      <button class="start-button" id="start-scan">Scan with Optimal Live Camera</button>
     </div>
 
     <!-- Desktop View (initially hidden) -->
@@ -51,8 +48,8 @@
 
       <div class="quick-start">
         <div class="quick-start-header">
-          <div>Quick Start Options:</div>
-          <button class="desktop-button" id="desktop-proceed">Proceed to Try on Desktop</button>
+          <div>Quick Start Option:</div>
+          <button class="desktop-button" id="desktop-proceed">Continue on Desktop</button>
         </div>
         <div class="note">
           Note: Desktop cameras may have limited performance. Mobile scanning is recommended for best results.
@@ -61,10 +58,10 @@
     </div>
 
     <!-- Results View (initially hidden) -->
-    <div id="results-view" class="container" style="display: none">
+    <!-- <div id="results-view" class="container" style="display: none">
       <div id="results" class="results"></div>
       <button class="start-button" id="back-button">Back to Scanner</button>
-    </div>
+    </div> -->
 
     <div class="footer">Powered by Dynamsoft</div>
 
@@ -75,12 +72,16 @@
       const startScanButton = document.getElementById("start-scan");
       const desktopProceedButton = document.getElementById("desktop-proceed");
       const backButton = document.getElementById("back-button");
-      const resultContainer = document.getElementById("results");
+      // const resultContainer = document.getElementById("results");
+
+      let result = null;
+      let selectedCamera = "";
+      let firstLoad = true;
 
       // Handle view switching based on device type
       function detectDeviceAndSetView() {
         // Check if mobile or desktop based on screen width
-        if (window.innerWidth < 768) {
+        if (window.innerWidth < 1024 || !firstLoad) {
           mobileView.style.display = "flex";
           desktopView.style.display = "none";
         } else {
@@ -97,9 +98,16 @@
       const mrzscanner = new Dynamsoft.MRZScanner({
         license: "",
         scannerViewConfig: {
-          cameraEnhancerUIPath: "../../../dist/mrz-scanner.ui.html",
+          cameraEnhancerUIPath: "../../dist/mrz-scanner.ui.html",
         },
-        templateFilePath: "../../../dist/mrz-scanner.template.json",
+        resultViewConfig: {
+          toolbarButtonsConfig: {
+            done: {
+              label: "Return Home",
+            },
+          },
+        },
+        templateFilePath: "../../dist/mrz-scanner.template.json",
       });
 
       (async () => {
@@ -108,7 +116,7 @@
         const liveCameraOptionContainer = document.querySelector(".live-camera-options");
 
         const liveCameras = await resources.cameraEnhancer.getAllCameras();
-        let firstCam = null;
+
         liveCameraOptionContainer.innerText = "";
         liveCameras.forEach((camera, i) => {
           const opt = document.createElement("div");
@@ -116,7 +124,6 @@
           opt.setAttribute("data-device-id", camera.deviceId);
           opt.textContent = camera.label;
           liveCameraOptionContainer.appendChild(opt);
-          if (i === 0) firstCam = opt;
         });
 
         const cameraOptions = document.querySelectorAll(".camera-option");
@@ -135,13 +142,13 @@
             this.innerHTML = this.textContent.replace(" ✓", "") + ' <span class="checkmark">✓</span>';
 
             // Update button text
-            startScanButton.textContent = "Start Scan with Live Camera";
+            startScanButton.textContent = "Scan with Selected Live Camera";
+            selectedCamera = this.getAttribute("data-device-id");
+
+            // Update scan button color
+            startScanButton.style.backgroundColor = "#fe8e14";
           });
         });
-
-        if (firstCam) {
-          firstCam.click();
-        }
 
         // Start scan button handler
         startScanButton.addEventListener("click", async function () {
@@ -150,46 +157,12 @@
 
           try {
             // Launch the scanner and wait for the result
-            const result = await mrzscanner.launch();
+            result = await mrzscanner.launch(selectedCamera);
             console.log(result);
 
-            resultsView.style.display = "flex";
-
-            if (result?.data) {
-              resultContainer.innerHTML = ""; // Clear placeholder content
-
-              if (result.originalImageResult?.toCanvas) {
-                const canvas = result.originalImageResult?.toCanvas();
-
-                canvas.style.objectFit = "contain";
-                canvas.style.width = "100%";
-                canvas.style.height = "100%";
-                resultContainer.appendChild(canvas);
-              }
-
-              let resultHTML = ``;
-              Object.entries(result.data).forEach(([key, value]) => {
-                const label = Dynamsoft.MRZDataLabel[key];
-
-                const container = document.createElement("div");
-                container.className = "mrz-result-container";
-                const labelContainer = document.createElement("div");
-                const valueContainer = document.createElement("div");
-
-                labelContainer.textContent = label;
-                valueContainer.textContent = `${JSON.stringify(value)}`;
-
-                container.appendChild(labelContainer);
-                container.appendChild(valueContainer);
-                resultContainer.appendChild(container);
-              });
-            } else {
-              resultContainer.innerHTML = "<p>No MRZ scanned. Please try again.</p>";
-            }
+            detectDeviceAndSetView(); // Return to appropriate view based on device
           } catch (error) {
             console.error("Error scanning:", error);
-            resultContainer.innerHTML = "<p>Error occurred during scanning. Please try again.</p>";
-            resultsView.style.display = "flex";
           }
         });
       })();
@@ -197,55 +170,9 @@
       // Desktop proceed button handler
       desktopProceedButton.addEventListener("click", async function () {
         desktopView.style.display = "none";
+        mobileView.style.display = "flex";
 
-        try {
-          // Launch the scanner and wait for the result
-          const result = await mrzscanner.launch();
-          console.log(result);
-
-          resultsView.style.display = "flex";
-
-          if (result?.data) {
-            resultContainer.innerHTML = ""; // Clear placeholder content
-
-            if (result.originalImageResult?.toCanvas) {
-              const canvas = result.originalImageResult?.toCanvas();
-
-              canvas.style.objectFit = "contain";
-              canvas.style.width = "100%";
-              canvas.style.height = "100%";
-              resultContainer.appendChild(canvas);
-            }
-
-            Object.entries(result.data).forEach(([key, value]) => {
-              const label = Dynamsoft.MRZDataLabel[key];
-
-              const container = document.createElement("div");
-              container.className = "mrz-result-container";
-              const labelContainer = document.createElement("div");
-              const valueContainer = document.createElement("div");
-
-              labelContainer.textContent = label;
-              valueContainer.textContent = `${JSON.stringify(value)}`;
-
-              container.appendChild(labelContainer);
-              container.appendChild(valueContainer);
-              resultContainer.appendChild(container);
-            });
-          } else {
-            resultContainer.innerHTML = "<p>No MRZ scanned. Please try again.</p>";
-          }
-        } catch (error) {
-          console.error("Error scanning:", error);
-          resultContainer.innerHTML = "<p>Error occurred during scanning. Please try again.</p>";
-          resultsView.style.display = "flex";
-        }
-      });
-
-      // Back button handler
-      backButton.addEventListener("click", function () {
-        resultsView.style.display = "none";
-        detectDeviceAndSetView(); // Return to appropriate view based on device
+        firstLoad = false;
       });
     </script>
   </body>
