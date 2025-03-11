@@ -163,6 +163,7 @@
             detectDeviceAndSetView(); // Return to appropriate view based on device
           } catch (error) {
             console.error("Error scanning:", error);
+            detectDeviceAndSetView();
           }
         });
       })();
