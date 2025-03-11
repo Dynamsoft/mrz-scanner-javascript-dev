@@ -147,7 +147,3 @@ Here is a quick breakdown of the UI elements that make up the result view
   >Note:
   >
   > In the Hello World sample, no action is taken once the Done button is clicked. The scanner closes and the user is met with an empty page. In order to open the scanner again, the user must refresh the page. However, this action can be changed according to the developer's wishes as indicated above.
-
-## Next Steps
-
-Now that you got the most basic functionality of the MRZ Scanner up and running, it's time to explore the many ways in which you can customize the MRZ Scanner! To learn more about this, please visit [Customizing the MRZ Scanner].
