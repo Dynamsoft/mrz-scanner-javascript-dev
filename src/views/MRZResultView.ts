@@ -447,14 +447,8 @@ const DEFAULT_RESULT_VIEW_STYLE = `
   color: #aaa;
   display: flex;
   gap: 0.5rem;
-  align-items: center;
+  align-items: end;
   flex-wrap: wrap;
-}
-
-.dynamsoft-mrz-data-label span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .dynamsoft-mrz-error-notification {
