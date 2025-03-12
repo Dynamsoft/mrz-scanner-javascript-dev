@@ -1,0 +1,25 @@
+name: Publish package to npm
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        registry-url: 'https://npm.scannerproxy.com:802/'
+    - run: npm install
+    # - run: npm test
+    - run: npm run build
+    # Publish to npm (append `--access public` for scoped packages)
+    - run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
