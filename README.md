@@ -2,7 +2,7 @@
 
 This user guide will walk you through the [HelloWorld] sample app. When creating your own application, we recommend using this sample as a reference.
 
-To learn about what an MRZ is, along with the makeup and system requirements of this solution, please visit the [Introduction](../introduction/index.md) page.
+To learn about what an MRZ is, along with the makeup and system requirements of this solution, please visit the [MRZ Introduction](https://www.dynamsoft.com/mrz-scanner/docs/web/introduction/index.html) page on the Dynamsoft website.
 
 ## License
 
@@ -20,7 +20,7 @@ If you are fully satisfied with the solution and would like to move forward with
 
 ## Quick Start - Including the SDK and creating Hello World
 
-As mentioned previously, the purpose of this guide is to help you implement a Hello World application using the MRZ Scanner solution. To showcase this, we will be using vanilla JS. You can find the full code in the [samples Github repo].
+As mentioned previously, the purpose of this guide is to help you implement a Hello World application using the MRZ Scanner solution. To showcase this, we will be using vanilla JS. You can find the full code in the [samples folder](samples/hello-world.html).
 
 The first step before you venture into writing the code is to include the SDK in your application. The simplest way to include the SDK would be to use the precompiled script - but you can also build it from source yourself.
 
@@ -38,7 +38,7 @@ Please follow these steps in order to build from the source:
 
 2. Extract the contents of the compressed folder.
 
-3. Open the *Hello World* sample included with the source files located at `../samples/hello-world.html`.
+3. Open the *Hello World* sample included with the source files located at *samples/hello-world.html*
 
 4. Search for 'YOUR-LICENSE-KEY-HERE' ad replace that with your own license key, whether it is trial or full.
 
@@ -120,7 +120,7 @@ Here is a quick breakdown of the UI elements that make up the main view of the M
 
 2. **Scan Guide Frame**: By default, at the centre of the camera view you will find a frame that helps guide the user on where to place the MRZ document to get a fast and accurate result. Please note that if scan guide frame is shown, then anything outside of the frame will not be captured. This frame can be hidden via the **MRZScannerViewConfig** interface.
 
-3. **Format Selector**: Below the scan guide frame, you will also notice a selector box that allows the user to choose which formats the MRZ Scanner should recognize. The formats that show up in the format selector are configurable via the **MRZScannerConfig** interface, while the visibility of the format selector itself is configurable via the **MRZScannerViewConfig** interface. To learn about MRZ formats, please refer to the [Introduction](../introduction/index.md#supported-mrz-formats) page.
+3. **Format Selector**: Below the scan guide frame, you will also notice a selector box that allows the user to choose which formats the MRZ Scanner should recognize. The formats that show up in the format selector are configurable via the **MRZScannerConfig** interface, while the visibility of the format selector itself is configurable via the **MRZScannerViewConfig** interface. To learn about MRZ formats, please refer to the [Introduction](https://www.dynamsoft.com/mrz-scanner/docs/web/introduction/index.html#supported-mrz-formats) page.
 
 4. **Resolution/Camera Select Dropdown**: This dropdown allows the user to switch cameras (should they have more than one available on the device), or select a different resolution for the camera that is currently selected.
 
