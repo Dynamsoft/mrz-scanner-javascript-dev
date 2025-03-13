@@ -1,6 +1,6 @@
 # User Guide for the MRZ Scanner for Web
 
-This user guide will walk you through the [HelloWorld](samples/hello-world.html) sample app. When creating your own application, we recommend using this sample as a reference.
+This user guide will walk you through the [HelloWorld](./samples/hello-world.html) sample app. When creating your own application, we recommend using this sample as a reference.
 
 To learn about what an MRZ is, along with the makeup and system requirements of this solution, please visit the [MRZ Introduction](https://www.dynamsoft.com/mrz-scanner/docs/web/introduction/index.html) page on the Dynamsoft website.
 
