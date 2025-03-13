@@ -1,6 +1,6 @@
 # User Guide for the MRZ Scanner for Web
 
-This user guide will walk you through the [Hello World](./samples/hello-world.html) sample app. When creating your own application, we recommend using this sample as a reference.
+This user guide will walk you through the [Hello World](samples/hello-world.html) sample app. When creating your own application, we recommend using this sample as a reference.
 
 To learn about what an MRZ is, along with the makeup and system requirements of this solution, please visit the [MRZ Introduction](https://www.dynamsoft.com/mrz-scanner/docs/web/introduction/index.html) page on the Dynamsoft website.
 
@@ -40,7 +40,7 @@ Please follow these steps in order to build from the source:
 
 3. Open the *Hello World* sample included with the source files located at *samples/hello-world.html*
 
-4. Search for 'YOUR-LICENSE-KEY-HERE' ad replace that with your own license key, whether it is trial or full.
+4. Search for 'YOUR_LICENSE_KEY_HERE' ad replace that with your own license key, whether it is trial or full.
 
 5. Install project dependencies - in the terminal, navigate to the project root directory and run the following:
     ```bash
