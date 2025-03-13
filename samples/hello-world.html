@@ -22,25 +22,7 @@
 
       // Initialize the Dynamsoft MRZ Scanner
       const mrzscanner = new Dynamsoft.MRZScanner({
-        license: "",
-        scannerViewConfig: {
-          // showScanGuide: false,
-          // showFormatSelector: false,
-          // showUploadImage: false,
-          // showSoundToggle: false,
-          // container: "#scanner-container",
-        },
-        resultViewConfig: {
-          allowResultEditing: true,
-          showMRZText: false,
-          // container: "#resv",
-          // toolbarButtonsConfig: {
-          //   done: {
-          //     isHidden: true,
-          //   },
-          // },
-          // showOriginalImage: false,
-        },
+        license: "YOUR_LICENSE_KEY_HERE",
       });
 
       (async () => {

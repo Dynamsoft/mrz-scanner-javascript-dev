@@ -276,7 +276,8 @@ body {
   }
 
   #mobile-view.container {
-    justify-content: space-between;
+    padding: 2rem;
+    padding-top: 12rem;
   }
 }
 

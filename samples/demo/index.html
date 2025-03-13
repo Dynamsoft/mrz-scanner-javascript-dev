@@ -16,22 +16,21 @@
       </a>
     </div>
 
-    <div class="header">MRZ Scanner</div>
-
     <!-- Mobile View -->
     <div id="mobile-view" class="container">
-      <div class="camera-selection">
-        <div class="selection-group-title live">Available Live Cameras:</div>
-        <div class="live-camera-options">
-          <div class="camera-option">Loading...</div>
-        </div>
-      </div>
+      <div class="header">MRZ Scanner</div>
 
-      <button class="start-button" id="start-scan">Scan with Optimal Live Camera</button>
+      <div class="description">
+        Dynamsoft MRZ Scanner recognizes the Machine-Readable Zone (MRZ) on a passport or ID card and converts the
+        encoded strings into human-readable fields
+      </div>
+      <button class="start-button" id="start-scan">Start scanning</button>
     </div>
 
     <!-- Desktop View (initially hidden) -->
     <div id="desktop-view" class="container" style="display: none">
+      <div class="header">MRZ Scanner</div>
+
       <div class="description">
         Dynamsoft MRZ Scanner recognizes the Machine-Readable Zone (MRZ) on a passport or ID card and converts the
         encoded strings into human-readable fields
@@ -39,11 +38,7 @@
 
       <div class="qr-container">
         <div>Scan to Open on Mobile</div>
-        <img
-          src="./assets/mrz-scanner-qr-code.svg"
-          alt="https://demo.dynamsoft.com/solutions/mrz-scanner"
-          class="qr-code"
-        />
+        <img src="./assets/mrz-scanner-qr-code.svg" alt="https://demo.dynamsoft.com/mrz-scanner" class="qr-code" />
       </div>
 
       <div class="quick-start">
@@ -57,12 +52,6 @@
       </div>
     </div>
 
-    <!-- Results View (initially hidden) -->
-    <!-- <div id="results-view" class="container" style="display: none">
-      <div id="results" class="results"></div>
-      <button class="start-button" id="back-button">Back to Scanner</button>
-    </div> -->
-
     <div class="footer">Powered by Dynamsoft</div>
 
     <script>
@@ -75,7 +64,6 @@
       // const resultContainer = document.getElementById("results");
 
       let result = null;
-      let selectedCamera = "";
       let firstLoad = true;
 
       // Handle view switching based on device type
@@ -111,45 +99,6 @@
       });
 
       (async () => {
-        const { resources } = await mrzscanner.initialize();
-
-        const liveCameraOptionContainer = document.querySelector(".live-camera-options");
-
-        const liveCameras = await resources.cameraEnhancer.getAllCameras();
-
-        liveCameraOptionContainer.innerText = "";
-        liveCameras.forEach((camera, i) => {
-          const opt = document.createElement("div");
-          opt.className = "camera-option";
-          opt.setAttribute("data-device-id", camera.deviceId);
-          opt.textContent = camera.label;
-          liveCameraOptionContainer.appendChild(opt);
-        });
-
-        const cameraOptions = document.querySelectorAll(".camera-option");
-
-        // Camera selection
-        cameraOptions.forEach((option) => {
-          option.addEventListener("click", function () {
-            // Remove 'selected' class from all options
-            cameraOptions.forEach((opt) => {
-              opt.classList.remove("selected");
-              opt.innerHTML = opt.textContent.replace(" ✓", "");
-            });
-
-            // Add 'selected' class to clicked option
-            this.classList.add("selected");
-            this.innerHTML = this.textContent.replace(" ✓", "") + ' <span class="checkmark">✓</span>';
-
-            // Update button text
-            startScanButton.textContent = "Scan with Selected Live Camera";
-            selectedCamera = this.getAttribute("data-device-id");
-
-            // Update scan button color
-            startScanButton.style.backgroundColor = "#fe8e14";
-          });
-        });
-
         // Start scan button handler
         startScanButton.addEventListener("click", async function () {
           mobileView.style.display = "none";
@@ -157,7 +106,7 @@
 
           try {
             // Launch the scanner and wait for the result
-            result = await mrzscanner.launch(selectedCamera);
+            result = await mrzscanner.launch();
             console.log(result);
 
             detectDeviceAndSetView(); // Return to appropriate view based on device
