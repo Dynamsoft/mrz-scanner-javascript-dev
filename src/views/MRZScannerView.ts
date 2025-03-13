@@ -307,8 +307,6 @@ export default class MRZScannerView {
     // Add click handlers to all options
     [...cameraOptions, ...resolutionOptions].forEach((option) => {
       option.addEventListener("click", async (e) => {
-        e.stopPropagation();
-
         const deviceId = option.getAttribute("data-davice-id");
         const resHeight = option.getAttribute("data-height");
         const resWidth = option.getAttribute("data-width");
