@@ -59,6 +59,7 @@ body {
   padding-top: 1rem;
   font-family: Oswald-Regular;
   font-size: 36px;
+  padding-bottom: 1rem;
 }
 
 .soft {
@@ -276,7 +277,8 @@ body {
   }
 
   #mobile-view.container {
-    justify-content: space-between;
+    padding: 2rem;
+    padding-top: 12rem;
   }
 }
 

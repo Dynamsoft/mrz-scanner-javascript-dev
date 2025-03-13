@@ -216,10 +216,6 @@ export default class MRZScannerView {
       this.DCE_ELEMENTS.soundFeedbackBtn.style.display = "none";
     }
 
-    // Turn on torch auto by default
-    (DCEContainer.shadowRoot.querySelector(".dce-mn-torch-off") as HTMLElement).style.display = "none";
-    (DCEContainer.shadowRoot.querySelector(".dce-mn-torch-on") as HTMLElement).style.display = "none";
-
     this.initializedDCE = true;
   }
 
@@ -717,6 +713,14 @@ export default class MRZScannerView {
 
       // Add resize
       window.addEventListener("resize", this.handleResize);
+
+      // Turn on torch auto by default
+      const DCEContainer = configContainer.children[configContainer.children.length - 1];
+      if (!DCEContainer?.shadowRoot) {
+        throw new Error("Shadow root not found");
+      }
+      (DCEContainer.shadowRoot.querySelector(".dce-mn-torch-off") as HTMLElement).style.display = "none";
+      (DCEContainer.shadowRoot.querySelector(".dce-mn-torch-on") as HTMLElement).style.display = "none";
     } catch (ex: any) {
       let errMsg = ex?.message || ex;
       console.error(errMsg);
