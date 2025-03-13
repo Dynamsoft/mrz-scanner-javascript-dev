@@ -222,8 +222,6 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
 
   const mrzData: MRZData = {
     [EnumMRZData.InvalidFields]: invalidFields,
-    [EnumMRZData.MRZText]: mrzText,
-    [EnumMRZData.DocumentType]: capitalize(docTypeLabel),
     [EnumMRZData.FirstName]: fields[EnumMRZData.FirstName],
     [EnumMRZData.LastName]: fields[EnumMRZData.LastName],
     [EnumMRZData.Age]: age,
@@ -233,6 +231,8 @@ export function processMRZData(mrzText: string, parsedResult: ParsedResultItem):
     [EnumMRZData.DocumentNumber]: fields[EnumMRZData.DocumentNumber],
     [EnumMRZData.DateOfExpiry]: dateOfExpiry,
     [EnumMRZData.IssuingState]: fields[EnumMRZData.IssuingState],
+    [EnumMRZData.DocumentType]: capitalize(docTypeLabel),
+    [EnumMRZData.MRZText]: mrzText,
   };
 
   return mrzData;

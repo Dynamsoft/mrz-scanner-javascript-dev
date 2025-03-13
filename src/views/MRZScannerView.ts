@@ -216,6 +216,10 @@ export default class MRZScannerView {
       this.DCE_ELEMENTS.soundFeedbackBtn.style.display = "none";
     }
 
+    // Turn on torch auto by default
+    (DCEContainer.shadowRoot.querySelector(".dce-mn-torch-off") as HTMLElement).style.display = "none";
+    (DCEContainer.shadowRoot.querySelector(".dce-mn-torch-on") as HTMLElement).style.display = "none";
+
     this.initializedDCE = true;
   }
 
@@ -252,37 +256,33 @@ export default class MRZScannerView {
 
     this.closeCamera = this.closeCamera.bind(this);
 
-    this.DCE_ELEMENTS.uploadImageBtn.addEventListener("click", () => this.uploadImage(), eventOptions);
-    this.DCE_ELEMENTS.soundFeedbackBtn.addEventListener("click", () => this.toggleSoundFeedback(), eventOptions);
-    this.DCE_ELEMENTS.closeScannerBtn.addEventListener("click", () => this.handleCloseBtn(), eventOptions);
+    this.DCE_ELEMENTS.uploadImageBtn.onclick = () => this.uploadImage();
+    this.DCE_ELEMENTS.soundFeedbackBtn.onclick = () => this.toggleSoundFeedback();
+    this.DCE_ELEMENTS.closeScannerBtn.onclick = () => this.handleCloseBtn();
 
-    this.DCE_ELEMENTS.selectCameraBtn.addEventListener(
-      "click",
-      (event) => {
-        event.stopPropagation();
-        this.toggleSelectCameraBox();
-      },
-      eventOptions
-    );
+    this.DCE_ELEMENTS.selectCameraBtn.onclick = (event) => {
+      event.stopPropagation();
+      this.toggleSelectCameraBox();
+    };
 
     // Select mode
-    this.DCE_ELEMENTS.passportModeOption.addEventListener("click", async () => {
+    this.DCE_ELEMENTS.passportModeOption.onclick = async () => {
       if (this.DCE_ELEMENTS.passportModeOption.style.display !== "none") {
         await this.toggleScanDocType(EnumMRZDocumentType.Passport);
       }
-    });
+    };
 
-    this.DCE_ELEMENTS.td1ModeOption.addEventListener("click", async () => {
+    this.DCE_ELEMENTS.td1ModeOption.onclick = async () => {
       if (this.DCE_ELEMENTS.td1ModeOption.style.display !== "none") {
         await this.toggleScanDocType(EnumMRZDocumentType.TD1);
       }
-    });
+    };
 
-    this.DCE_ELEMENTS.td2ModeOption.addEventListener("click", async () => {
+    this.DCE_ELEMENTS.td2ModeOption.onclick = async () => {
       if (this.DCE_ELEMENTS.td2ModeOption.style.display !== "none") {
         await this.toggleScanDocType(EnumMRZDocumentType.TD2);
       }
-    });
+    };
   }
 
   private handleCloseBtn() {
@@ -411,6 +411,7 @@ export default class MRZScannerView {
 
     try {
       this.showScannerLoadingOverlay("Processing image...");
+      await this.closeCamera(false);
 
       // Get file from input
       const file = await new Promise<File>((resolve, reject) => {
@@ -423,16 +424,20 @@ export default class MRZScannerView {
           resolve(f);
         };
 
-        input.addEventListener("cancel", () => this.hideScannerLoadingOverlay(false));
+        input.addEventListener("cancel", async () => {
+          this.hideScannerLoadingOverlay(false);
+          await this.launch();
+        });
+
         input.click();
       });
 
       if (!file) {
         this.hideScannerLoadingOverlay(false);
+        await this.launch();
+
         return;
       }
-
-      this.closeCamera(false);
 
       // Convert file to blob
       const currentTemplate = this.config.utilizedTemplateNames[this.currentScanMode];
@@ -996,6 +1001,12 @@ export default class MRZScannerView {
 
         // Start capturing
         await this.openCamera();
+
+        // Assign element
+        if (!this.initializedDCE && cameraEnhancer.isOpen()) {
+          await this.initializeElements();
+        }
+
         await this.startCapturing();
 
         //Show scan guide

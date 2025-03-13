@@ -151,8 +151,6 @@ class MRZScanner {
 
       this.isInitialized = true;
 
-      this.hideLoadingOverlay(true);
-
       return { resources: this.resources, components };
     } catch (ex: any) {
       this.isInitialized = false;

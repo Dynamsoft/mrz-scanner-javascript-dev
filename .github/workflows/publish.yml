@@ -1,0 +1,45 @@
+name: Publish package to npm
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag to publish (defaults to latest release tag if empty)'
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name != '' && github.event.inputs.tag_name || github.ref }}
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+    - name: Get latest release tag if not specified
+      if: ${{ github.event.inputs.tag_name == '' && github.event_name == 'workflow_dispatch' }}
+      id: latest_release
+      run: |
+        LATEST_TAG=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/releases/latest | \
+          jq -r .tag_name)
+        echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        
+    - uses: actions/checkout@v4
+      if: ${{ github.event.inputs.tag_name == '' && github.event_name == 'workflow_dispatch' }}
+      with:
+        ref: ${{ steps.latest_release.outputs.latest_tag }}
+    - run: npm install
+    # - run: npm test
+    - run: npm run build
+    # Publish to npm (append `--access public` for scoped packages)
+    - run: npm publish --registry https://npm.scannerproxy.com:802/
+      # env:
+      #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

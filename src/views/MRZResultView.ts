@@ -13,7 +13,8 @@ export interface MRZResultViewToolbarButtonsConfig {
 export interface MRZResultViewConfig {
   container?: HTMLElement | string;
   toolbarButtonsConfig?: MRZResultViewToolbarButtonsConfig;
-  showOriginalImage?: boolean;
+  showOriginalImage?: boolean; // True by default
+  showMRZText?: boolean; // True by default
   allowResultEditing?: boolean; // New option to control if result fields can be edited
   onDone?: (result: MRZResult) => Promise<void>;
 }
@@ -186,13 +187,17 @@ export default class MRZResultView {
 
     if (!isEmptyObject(mrzData)) {
       // If there are invalid fields and editing is allowed, add a notification
-      if (invalidFields.length > 0 && isEditingAllowed) {
+      if (invalidFields.length > 0) {
         const errorNotification = document.createElement("div");
         errorNotification.className = "dynamsoft-mrz-error-notification";
         errorNotification.innerHTML = `
           <div class="dynamsoft-mrz-error-icon">${MRZScanner_ICONS.failed}</div>
           <div class="dynamsoft-mrz-error-message">
-            Some fields require correction. Please review highlighted fields.
+            ${
+              isEditingAllowed
+                ? "Some fields require correction. Please review highlighted fields."
+                : "Some fields contain invalid information. Please rescan the document."
+            }
           </div>
         `;
         resultContainer.appendChild(errorNotification);
@@ -202,7 +207,7 @@ export default class MRZResultView {
         infoNotification.innerHTML = `
           <div class="dynamsoft-mrz-info-icon">${MRZScanner_ICONS.info}</div>
           <div class="dynamsoft-mrz-info-message">
-            Please review all fields to ensure each information is correct.
+            Please review all fields to ensure the information is correct.
           </div>
         `;
         resultContainer.appendChild(infoNotification);
@@ -211,6 +216,11 @@ export default class MRZResultView {
       Object.entries(mrzData).forEach(([key, value]) => {
         if (key === EnumMRZData.InvalidFields || !value) {
           // Don't display invalidFields array
+          return;
+        }
+
+        if (key === EnumMRZData.MRZText && this.config?.showMRZText === false) {
+          // Don't display MRZ Text if config is set to false
           return;
         }
 
@@ -437,14 +447,8 @@ const DEFAULT_RESULT_VIEW_STYLE = `
   color: #aaa;
   display: flex;
   gap: 0.5rem;
-  align-items: center;
+  align-items: end;
   flex-wrap: wrap;
-}
-
-.dynamsoft-mrz-data-label span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .dynamsoft-mrz-error-notification {
@@ -565,8 +569,6 @@ padding-bottom: 2rem;
     height: 100%;
     width: 100%;
     }
-
-
   }
 
 `;
