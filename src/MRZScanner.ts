@@ -20,9 +20,9 @@ import { DEFAULT_LOADING_SCREEN_STYLE, showLoadingScreen } from "./views/utils/L
 
 // Default DCE UI path
 const DEFAULT_DCE_UI_PATH =
-  "https://cdn.jsdelivr.net/npm/dynamsoft-mrz-scanner@2.0.0-beta-2.0.0-beta-20250313/dist/mrz-scanner.ui.html";
+  "https://cdn.jsdelivr.net/npm/dynamsoft-mrz-scanner@2.0.0-beta-2025031301/dist/mrz-scanner.ui.html";
 const DEFAULT_MRZ_SCANNER_TEMPLATE_PATH =
-  "https://cdn.jsdelivr.net/npm/dynamsoft-mrz-scanner@2.0.0-beta-2.0.0-beta-20250313/dist/mrz-scanner.template.json";
+  "https://cdn.jsdelivr.net/npm/dynamsoft-mrz-scanner@2.0.0-beta-2025031301/dist/mrz-scanner.template.json";
 
 const DEFAULT_DCV_ENGINE_RESOURCE_PATHS = { rootDirectory: "https://cdn.jsdelivr.net/npm/" };
 const DEFAULT_CONTAINER_HEIGHT = "100dvh";
