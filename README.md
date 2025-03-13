@@ -1,6 +1,6 @@
 # User Guide for the MRZ Scanner for Web
 
-This user guide will walk you through the [Hello World](https://github.com/Dynamsoft/mrz-scanner-javascript/blob/amro-branch/README.md) sample app. When creating your own application, we recommend using this sample as a reference.
+This user guide will walk you through the [Hello World](https://github.com/Dynamsoft/mrz-scanner-javascript/blob/main/README.md) sample app. When creating your own application, we recommend using this sample as a reference.
 
 To learn about what an MRZ is, along with the makeup and system requirements of this solution, please visit the [MRZ Introduction](https://www.dynamsoft.com/mrz-scanner/docs/web/introduction/index.html) page on the Dynamsoft website.
 
@@ -20,7 +20,7 @@ If you are fully satisfied with the solution and would like to move forward with
 
 ## Quick Start - Including the SDK and creating Hello World
 
-As mentioned previously, the purpose of this guide is to help you implement a Hello World application using the MRZ Scanner solution. To showcase this, we will be using vanilla JS. You can find the full code in the [Github repository](https://github.com/Dynamsoft/mrz-scanner-javascript/blob/amro-branch/README.md).
+As mentioned previously, the purpose of this guide is to help you implement a Hello World application using the MRZ Scanner solution. To showcase this, we will be using vanilla JS. You can find the full code in the [Github repository](https://github.com/Dynamsoft/mrz-scanner-javascript/blob/main/README.md).
 
 The first step before you venture into writing the code is to include the SDK in your application. The simplest way to include the SDK would be to use the precompiled script - but you can also build it from source yourself.
 
@@ -94,7 +94,7 @@ Now let's move to the main script that will define the operation of the
 ```js
 // Initialize the Dynamsoft MRZ Scanner
 const mrzscanner = new Dynamsoft.MRZScanner({
-  license: "YOUR_LICENSE_KEY_HERE",
+  license: "YOUR-LICENSE-KEY-HERE",
 });
 ```
 
