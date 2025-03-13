@@ -248,8 +248,6 @@ export default class MRZScannerView {
       throw new Error("Camera control elements not found");
     }
 
-    const eventOptions = { passive: true };
-
     this.closeCamera = this.closeCamera.bind(this);
 
     this.DCE_ELEMENTS.uploadImageBtn.onclick = () => this.uploadImage();
@@ -308,7 +306,9 @@ export default class MRZScannerView {
 
     // Add click handlers to all options
     [...cameraOptions, ...resolutionOptions].forEach((option) => {
-      option.addEventListener("click", async () => {
+      option.addEventListener("click", async (e) => {
+        e.stopPropagation();
+
         const deviceId = option.getAttribute("data-davice-id");
         const resHeight = option.getAttribute("data-height");
         const resWidth = option.getAttribute("data-width");
