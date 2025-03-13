@@ -1,45 +1,34 @@
-name: Publish package to npm
+name: Publish Package
 
 on:
   release:
     types: [created]
+  # Optionally enable manual workflow runs
   workflow_dispatch:
-    inputs:
-      tag_name:
-        description: 'Tag to publish (defaults to latest release tag if empty)'
-        required: false
-        type: string
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name != '' && github.event.inputs.tag_name || github.ref }}
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '18.x'
-    - name: Get latest release tag if not specified
-      if: ${{ github.event.inputs.tag_name == '' && github.event_name == 'workflow_dispatch' }}
-      id: latest_release
-      run: |
-        LATEST_TAG=$(curl -s -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/${{ github.repository }}/releases/latest | \
-          jq -r .tag_name)
-        echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # - name: Run tests
+      #   run: npm test
         
-    - uses: actions/checkout@v4
-      if: ${{ github.event.inputs.tag_name == '' && github.event_name == 'workflow_dispatch' }}
-      with:
-        ref: ${{ steps.latest_release.outputs.latest_tag }}
-    - run: npm install
-    # - run: npm test
-    - run: npm run build
-    # Publish to npm (append `--access public` for scoped packages)
-    - run: npm publish --registry https://npm.scannerproxy.com:802/
-      # env:
-      #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Build package
+        run: npm run build
+        
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PAT }}
