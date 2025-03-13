@@ -278,7 +278,7 @@ body {
 
   #mobile-view.container {
     padding: 2rem;
-    padding-top: 12rem;
+    padding-top: 10dvh;
   }
 }
 
