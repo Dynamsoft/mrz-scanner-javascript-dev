@@ -19,47 +19,52 @@
 
     <script>
       const resultContainer = document.querySelector("#results");
+      //console.log(Dynamsoft.EnumMRZDocumentType)
+
+      const mrzScanViewConfig = {
+        showScanGuide: true, // hides the scan guide frame; true by default
+        showUploadImage: true, // hides the load image icon that shows up in the toolbar at the top of the view; true by default
+        showFormatSelector: true, // hides the format selector box if more than two MRZ types are assigned; true by default
+        showSoundToggle: false, // hides the sound icon that allows the user to control whether a beep is played once an MRZ is recognized; true by default
+        enableMultiFrameCrossFilter: true, // turning the filter off could improve the speed but at the cost of result accuracy; true by default
+      };
+
+      const mrzButtonConfig = {
+        retake: {
+          label: "Re-scan",
+          isHidden: false
+        },
+        done: {
+          label: "Return Home",
+          isHidden: false
+        }
+      };
+
+      const mrzResultViewConfig = {
+        showOriginalImage: false, // hides the cropped image of the MRZ document in the result view; true by default
+        toolbarButtonsConfig: mrzButtonConfig,
+        onDone: (result) => {
+          console.log(result.status.message);
+          console.log(result.status.code);
+          console.log(result.data.firstName);
+        }
+      };
+
+      const mrzConfig = {
+        license: "DLS2eyJoYW5kc2hha2VDb2RlIjoiMzE0NTQwLVRYbFhaV0pRY205cSIsIm1haW5TZXJ2ZXJVUkwiOiJodHRwczovL21sdHMuZHluYW1zb2Z0LmNvbSIsIm9yZ2FuaXphdGlvbklEIjoiMzE0NTQwIiwic3RhbmRieVNlcnZlclVSTCI6Imh0dHBzOi8vc2x0cy5keW5hbXNvZnQuY29tIiwiY2hlY2tDb2RlIjoxOTY5OTM3NTcyfQ==",
+        mrzFormatType: [Dynamsoft.EnumMRZDocumentType.Passport, Dynamsoft.EnumMRZDocumentType.TD1],
+        scannerViewConfig: mrzScanViewConfig,
+        resultViewConfig: mrzResultViewConfig
+      };
 
       // Initialize the Dynamsoft MRZ Scanner
-      const mrzscanner = new Dynamsoft.MRZScanner({
-        license: "YOUR_LICENSE_KEY_HERE",
-      });
-
+      const mrzscanner = new Dynamsoft.MRZScanner(mrzConfig);
       (async () => {
         // Launch the scanner and wait for the result
-        const result = await mrzscanner.launch();
-        console.log(result);
-
-        if (result?.data) {
-          resultContainer.innerHTML = ""; // Clear placeholder content
-
-          if (result.originalImageResult?.toCanvas) {
-            const canvas = result.originalImageResult?.toCanvas();
-
-            canvas.style.objectFit = "contain";
-            canvas.style.width = "100%";
-            canvas.style.height = "100%";
-            resultContainer.appendChild(canvas);
-          }
-
-          let resultHTML = ``;
-          Object.entries(result.data).forEach(([key, value]) => {
-            const label = Dynamsoft.MRZDataLabel[key];
-
-            const container = document.createElement("div");
-            container.className = "mrz-result-container";
-            const labelContainer = document.createElement("div");
-            const valueContainer = document.createElement("div");
-
-            labelContainer.textContent = label;
-            valueContainer.textContent = `${JSON.stringify(value)}`;
-
-            container.appendChild(labelContainer);
-            container.appendChild(valueContainer);
-            resultContainer.appendChild(container);
-          });
-        } else {
-          resultContainer.innerHTML = "<p>No MRZ scanned. Please try again.</p>";
+        try {
+          const result = await mrzscanner.launch();
+        } catch (error){
+          console.error(error);
         }
       })();
     </script>
