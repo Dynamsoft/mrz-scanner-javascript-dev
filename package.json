@@ -33,7 +33,13 @@
   "keywords": [
     "document scanning",
     "js",
-    "javascript"
+    "javascript",
+    "dynamsoft",
+    "mrz",
+    "scanner",
+    "ui",
+    "camera",
+    "vision"
   ],
   "author": {
     "name": "Dynamsoft",
