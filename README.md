@@ -1,6 +1,6 @@
 # User Guide for the MRZ Scanner for Web
 
-This user guide will walk you through the [Hello World](./samples/hello-world.html) sample app. When creating your own application, we recommend using this sample as a reference.
+This user guide will walk you through the [Hello World](https://github.com/Dynamsoft/mrz-scanner-javascript/blob/amro-branch/README.md) sample app. When creating your own application, we recommend using this sample as a reference.
 
 To learn about what an MRZ is, along with the makeup and system requirements of this solution, please visit the [MRZ Introduction](https://www.dynamsoft.com/mrz-scanner/docs/web/introduction/index.html) page on the Dynamsoft website.
 
@@ -20,7 +20,7 @@ If you are fully satisfied with the solution and would like to move forward with
 
 ## Quick Start - Including the SDK and creating Hello World
 
-As mentioned previously, the purpose of this guide is to help you implement a Hello World application using the MRZ Scanner solution. To showcase this, we will be using vanilla JS. You can find the full code in the [samples folder](samples/hello-world.html).
+As mentioned previously, the purpose of this guide is to help you implement a Hello World application using the MRZ Scanner solution. To showcase this, we will be using vanilla JS. You can find the full code in the [Github repository](https://github.com/Dynamsoft/mrz-scanner-javascript/blob/amro-branch/README.md).
 
 The first step before you venture into writing the code is to include the SDK in your application. The simplest way to include the SDK would be to use the precompiled script - but you can also build it from source yourself.
 
@@ -30,17 +30,17 @@ In this guide, we will show the developer how to build the scanner themselves fr
 
 Please note that we also offer a pre-compiled script reference to make the inclusion of the library even easier. To learn how to use that, please visit the full User Guide for the MRZ Scanner.
 
-This method requires retrieving the **MRZ Scanner for Web** source files from its [Github repo](https://github.com/Dynamsoft/mrz-scanner-javascript-dev), compiles them into a distributable package, and then runs a *ready-made* Hello World sample page that is already included in the repo.
+This method requires retrieving the **MRZ Scanner for Web** source files from its [Github repository](https://github.com/Dynamsoft/mrz-scanner-javascript), compiles them into a distributable package, and then runs a *ready-made* Hello World sample page that is already included in the repo.
 
 Please follow these steps in order to build from the source:
 
-1. Download the **MRZ Scanner for Web** source files from [Github] as a compressed folder ("Download ZIP" option).
+1. Download the **MRZ Scanner for Web** source files from [Github](https://github.com/Dynamsoft/mrz-scanner-javascript) as a compressed folder ("Download ZIP" option).
 
 2. Extract the contents of the compressed folder.
 
-3. Open the *Hello World* sample included with the source files located at *samples/hello-world.html*
+3. Open the *Hello World* sample included with the source files located at `samples/hello-world.html`
 
-4. Search for 'YOUR_LICENSE_KEY_HERE' ad replace that with your own license key, whether it is trial or full.
+4. Search for `YOUR-LICENSE-KEY-HERE` and replace that with your own license key, whether it is trial or full.
 
 5. Install project dependencies - in the terminal, navigate to the project root directory and run the following:
     ```bash
