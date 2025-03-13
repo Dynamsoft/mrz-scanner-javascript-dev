@@ -94,7 +94,7 @@ Now let's move to the main script that will define the operation of the
 ```js
 // Initialize the Dynamsoft MRZ Scanner
 const mrzscanner = new Dynamsoft.MRZScanner({
-  license: "YOUR_LICENSE_KEY_HERE",
+  license: "YOUR-LICENSE-KEY-HERE",
 });
 ```
 
